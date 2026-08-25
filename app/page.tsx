@@ -441,7 +441,14 @@ export default function Home() {
                 <div className="relative flex items-center justify-between w-full mb-12">
                   {item.side === 'right' ? (
                     <>
-                      <div className="w-5/12 text-right pr-8">
+                      <div className="w-5/12 text-right pr-8 bg-[#121822] pt-4 pb-4 rounded-xl">
+                        <div
+                        className={`w-8/12 pl-8 text-left font-mono font-bold text-sm tracking-widest ${
+                          item.gold ? 'text-[var(--gold)]' : 'text-[#00E5FF]'
+                        }`}
+                      >
+                        {item.date}
+                      </div>
                         <h3 className="font-display text-lg font-bold text-white">{item.title}</h3>
                         <p className="text-sm text-[var(--mist)] mt-2">{item.desc}</p>
                       </div>
@@ -452,13 +459,7 @@ export default function Home() {
                             : 'bg-[#00E5FF] shadow-[0_0_10px_#00E5FF]'
                         }`}
                       />
-                      <div
-                        className={`w-5/12 pl-8 text-left font-mono font-bold text-sm tracking-widest ${
-                          item.gold ? 'text-[var(--gold)]' : 'text-[#00E5FF]'
-                        }`}
-                      >
-                        {item.date}
-                      </div>
+                      
                     </>
                   ) : (
                     <>
@@ -467,7 +468,7 @@ export default function Home() {
                           item.gold ? 'text-[var(--gold)]' : 'text-[#00E5FF]'
                         }`}
                       >
-                        {item.date}
+                        
                       </div>
                       <span
                         className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full ${
@@ -476,7 +477,14 @@ export default function Home() {
                             : 'bg-white shadow-[0_0_10px_white]'
                         }`}
                       />
-                      <div className="w-5/12 pl-8 text-left">
+                      <div className="w-5/12 pl-8 text-left bg-[#121822] pt-4 pb-4 rounded-xl">
+                      <div
+                        className={`w-8/12 text-left pr-6 pb-4 font-mono font-bold text-sm tracking-widest ${
+                          item.gold ? 'text-[var(--gold)]' : 'text-[#00E5FF]'
+                        }`}
+                      >
+                        {item.date}
+                      </div>
                         {item.tag && (
                           <span className="badge-mono border-[#00E5FF]/50 bg-[#00E5FF] text-[#05080C] mb-2 inline-block">
                             {item.tag}
