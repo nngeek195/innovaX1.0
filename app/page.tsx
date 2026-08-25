@@ -27,7 +27,7 @@ const TRACKS = [
   {
     code: 'TRK.01',
     title: 'Autonomous Agents',
-    desc: 'Multi-step agents that plan, reason, and act — from task copilots to fully self-directed workflows.',
+    desc: 'Multi-step agents that plan, reason, and act - from task copilots to fully self-directed workflows.',
   },
   {
     code: 'TRK.02',
@@ -37,7 +37,7 @@ const TRACKS = [
   {
     code: 'TRK.03',
     title: 'Enterprise Automation',
-    desc: 'Agentic tools that cut busywork out of real operations — support, finance, logistics, and ops.',
+    desc: 'Agentic tools that cut busywork out of real operations - support, finance, logistics, and ops.',
   },
 ]; //
 
@@ -263,7 +263,7 @@ export default function Home() {
       ========================================= */}
       <section
         id="gateway"
-        className="min-h-screen flex items-center p-8 md:p-24 relative z-10 w-full overflow-hidden"
+        className="min-h-screen flex items-center p-8 md:p-20 relative z-10 w-full overflow-hidden"
       >
         {/* --- Section 1 Background Video (Independent from scroll) --- */}
         <div className="absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none bg-[#05080C]">
@@ -273,7 +273,7 @@ export default function Home() {
             loop
             muted
             playsInline
-            className="w-full h-full object-cover opacity-60"
+            className="w-full h-full object-cover"
           />
         </div>
         
@@ -285,27 +285,27 @@ export default function Home() {
           
           {/* LEFT COLUMN: Text Content */}
           <div className="max-w-2xl relative z-20 flex-shrink-0">
-            <div className="badge-mono border-[#00E5FF]/40 text-[#00E5FF] bg-[#00E5FF]/[0.06] inline-block mb-8">
+            <div className="badge-mono border-[#00E5FF]/40 text-[#00E5FF] bg-[#00E5FF]/[0.06] inline-block mb-6">
               IEEE Computer Society · SUSL Chapter Presents
             </div>
 
             <img
               src="https://github.com/nngeek195/mywork/blob/b1/Pasted%20image.png?raw=true"
               alt="InnovaX Logo"
-              className="w-full max-w-sm md:max-w-md mb-6 drop-shadow-[0_0_15px_rgba(0,229,255,0.3)]"
+              className="w-full max-w-sm md:max-w-md mb-4 drop-shadow-[0_0_15px_rgba(0,229,255,0.3)]"
             />
 
-            <h1 className="font-display text-2xl md:text-3xl font-semibold text-white/90 tracking-wide mb-5">
-              Chart the next <span className="heading-highlight">Agentic AI</span> frontier.
+            <h1 className="heading-glow font-display text-2xl md:text-3xl font-semibold text-white/90 tracking-wide mb-5">
+              Observe <span className="heading-highlight">Reason</span> Execute
             </h1>
 
-            <p className="text-[var(--mist)] text-sm md:text-base leading-relaxed tracking-wide mb-10 max-w-xl">
-              An AI-focused idea hackathon bridging inventive thinking and Agentic AI solutions —
+            <p className="text-[var(--mist)] text-sm md:text-base leading-relaxed tracking-wide mb-8 max-w-xl">
+              An AI-focused idea hackathon bridging inventive thinking and Agentic AI solutions -
               organised by the IEEE Computer Society Chapter of Sabaragamuwa University of Sri Lanka.
               Form a crew, chart your proposal, and pitch your way to the treasury.
             </p>
 
-            <div className="flex flex-wrap gap-4 mb-14">
+            <div className="flex flex-wrap gap-4 mb-12">
               <button className="btn-outline-cyan">
                 SUBMIT PROPOSAL
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -339,15 +339,15 @@ export default function Home() {
         {/* =========================================
             SECTION 2 — CHAPTERS
         ========================================= */}
-        <section id="chapters" className="section-container">
+        <section id="chapters" className="section-container pt-0">
           <Reveal className="w-full flex flex-col items-center text-center">
             <SectorTag n="01" label="CHAPTERS" />
             <h2 className="heading-glow justify-center">
               WHO&apos;S ON THIS <span className="heading-highlight">EXPEDITION</span>
             </h2>
-            <p className="heading-sub text-center">
+            <p className="heading-sub text-center mb-10">
               InnovaX is run by student volunteers of the IEEE Computer Society Chapter at Sabaragamuwa
-              University of Sri Lanka. Teams of 2–4 undergraduates pick one track below and spend six
+              University of Sri Lanka. Teams of 2 – 4 undergraduates pick one track below and spend six
               weeks turning an idea into a working Agentic AI proposal.
             </p>
           </Reveal>
@@ -355,7 +355,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
             {TRACKS.map((t, i) => (
               <Reveal key={t.code} delay={i * 120}>
-                <div className="glass-panel h-full text-left flex flex-col">
+                <div className="glass-panel h-full text-left flex flex-col hover:scale-105">
                   <span className="font-mono text-xs text-[#00E5FF]/70 tracking-widest mb-4">{t.code}</span>
                   <h3 className="font-display text-lg font-semibold text-white mb-3">{t.title}</h3>
                   <p className="text-sm text-[var(--mist)] leading-relaxed">{t.desc}</p>
@@ -368,14 +368,14 @@ export default function Home() {
         {/* =========================================
             SECTION 3 — TREASURY
         ========================================= */}
-        <section id="treasury" className="section-container">
+        <section id="treasury" className="section-container pt-0">
           <Reveal className="w-full flex flex-col items-center text-center">
-            <SectorTag n="02" label="TREASURY" />
+            <SectorTag n="03" label="TREASURY" />
             <h2 className="heading-glow justify-center">
               THE <span className="heading-highlight">PRIZE POOL</span>
             </h2>
             <p className="heading-sub text-center">
-              Every finalist walks away with a certificate and mentorship access — the treasury below is
+              Every finalist walks away with a certificate and mentorship access - the treasury below is
               reserved for the teams who make it to the top of the leaderboard.
             </p>
           </Reveal>
