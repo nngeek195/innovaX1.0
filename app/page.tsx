@@ -268,7 +268,7 @@ export default function Home() {
         {/* --- Section 1 Background Video (Independent from scroll) --- */}
         <div className="absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none bg-[#05080C]">
           <video
-            src="/hero-bg.mp4"
+            src="/blue_power_owl.mp4"
             autoPlay
             loop
             muted
