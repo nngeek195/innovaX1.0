@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { FaPlus } from "react-icons/fa";
 
 /* ------------------------------------------------------------------ */
 /*  Demo content — swap with real copy once confirmed by the chapter   */
@@ -521,7 +522,7 @@ export default function Home() {
         <section id="partners" className="section-container text-center">
           <Reveal className="w-full flex flex-col items-center">
             <SectorTag n="04" label="PARTNERS" />
-            <h2 className="heading-glow justify-center">
+            <h2 className="heading-glow justify-center mb-8">
               THE <span className="heading-highlight">GUARDIANS</span>
             </h2>
             <p className="text-[var(--mist)] italic text-sm mb-10 text-center max-w-xl">
@@ -568,10 +569,10 @@ export default function Home() {
         <section id="faq" className="section-container">
           <Reveal className="w-full flex flex-col items-center text-center">
             <SectorTag n="05" label="FAQ" />
-            <h2 className="heading-glow justify-center">
+            <h2 className="heading-glow justify-center mb-2">
               KNOWN <span className="heading-highlight">HAZARDS</span>
             </h2>
-            <p className="heading-sub text-center">
+            <p className="heading-sub text-center mb-8">
               Answers to what most explorers ask before setting off. Still stuck? Reach the crew below.
             </p>
           </Reveal>
@@ -590,13 +591,13 @@ export default function Home() {
                       <span className="font-display text-sm md:text-base font-semibold text-white">
                         {f.q}
                       </span>
-                      <span
-                        className={`shrink-0 w-6 h-6 rounded-full border border-[#00E5FF]/40 flex items-center justify-center text-[#00E5FF] transition-transform duration-300 ${
-                          open ? 'rotate-45' : ''
-                        }`}
+                      <div
+                        className={`shrink-0 w-7 h-7 rounded-full border border-[#00E5FF] flex items-center justify-center text-[#00E5FF] `}
                       >
-                        +
-                      </span>
+                        <FaPlus className={`w-4 h-4 transition-transform duration-300 ${
+                          open ? 'rotate-45' : ''
+                        }`} />
+                      </div>
                     </button>
                     <div
                       className="grid transition-all duration-300 ease-out"
