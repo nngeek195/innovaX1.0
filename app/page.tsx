@@ -106,6 +106,9 @@ const FAQS = [
   },
 ]; //
 
+
+
+
 /* ------------------------------------------------------------------ */
 /*  Small reusable pieces                                              */
 /* ------------------------------------------------------------------ */
@@ -129,7 +132,40 @@ function Reveal({
     </div>
   );
 } //
+/* ------------------------------------------------------------------ */
+/*  Glass Shatter Helper                                              */
+/* ------------------------------------------------------------------ */
+function GlassOverlay({ isShattered }: { isShattered: boolean }) {
+  // 1. Hold the random styles in state (empty on the server)
+  const [shardStyles, setShardStyles] = useState<React.CSSProperties[]>([]);
 
+  // 2. Generate random values ONLY on the client after mount
+  useEffect(() => {
+    const generatedStyles = Array.from({ length: 36 }).map(() => ({
+      '--x': `${(Math.random() - 0.5) * 400}px`,
+      '--y': `${(Math.random() - 0.5) * 400}px`,
+      '--r': `${(Math.random() - 0.5) * 180}deg`,
+      '--d': `${Math.random() * 0.1}s`,
+    }));
+    
+    setShardStyles(generatedStyles as React.CSSProperties[]);
+  }, []); // Empty dependency array ensures this only runs once on the client
+
+  return (
+    <div className={`glass-shatter-container ${isShattered ? 'shattered pointer-events-none' : ''}`}>
+      {shardStyles.length > 0 
+        ? shardStyles.map((style, i) => (
+            // Client-side render with random styles applied
+            <div key={i} className="shard" style={style} />
+          ))
+        : Array.from({ length: 36 }).map((_, i) => (
+            // Server-side / Initial render without styles to prevent mismatch
+            <div key={i} className="shard" />
+          ))
+      }
+    </div>
+  );
+}
 /* ------------------------------------------------------------------ */
 
 export default function Home() {
@@ -141,6 +177,30 @@ export default function Home() {
   const scrollVideoRef = useRef<HTMLVideoElement>(null);
   const scrollContentRef = useRef<HTMLDivElement>(null);
 
+    // Add this near your other states
+  const [isShattered, setIsShattered] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      
+      // Trigger the "burst" when they scroll down slightly
+      if (scrollY > 50 && !isShattered) {
+        setIsShattered(true);
+      } else if (scrollY <= 10 && isShattered) {
+        // Reset if they scroll all the way back up
+        setIsShattered(false); 
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); 
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isShattered]);
+
+
+
+// Don't forget to add isShattered to the dependency array
   // --- NEW: Scroll-Scrubbing Logic ---
   // --- NEW: Exact Timestamp Scroll-Scrubbing Logic ---
   useEffect(() => {
@@ -242,95 +302,49 @@ export default function Home() {
 
   return (
     <main ref={rootRef} className="relative bg-transparent">
-      {/* Background layer — cobalt wash + cartographic grid */}
+      {/* Backgrounds */}
       <div className="fixed inset-0 w-full h-full -z-20 bg-gradient-to-b from-[#0055FF]/12 via-[#05080C] to-[#05080C]" />
       <div className="fixed inset-0 w-full h-full -z-10 chart-grid" />
-
-      {/* --- NEW: The Scroll-Scrubbing Background Video --- */}
-      {/* Kept at z-[-15] so it sits behind the content but above the base background */}
       <div className="fixed inset-0 w-full h-full z-[-15] overflow-hidden bg-[#05080C]">
-        <video
-          ref={scrollVideoRef}
-          src="/scroll-bg.mp4"
-          muted
-          playsInline
-          className="w-full h-full object-cover opacity-15" 
-        />
+        <video ref={scrollVideoRef} src="/scroll-bg.mp4" muted playsInline className="w-full h-full object-cover opacity-15" />
       </div>
 
+      {/* --- FIX 1: Move Glass Overlay to the absolute top layer --- */}
+      <GlassOverlay isShattered={isShattered} />
+
       {/* =========================================
-          SECTION 1 — GATEWAY
+          SECTION 1 — GATEWAY (Fixed & Explodes Outward)
       ========================================= */}
-      <section
-        id="gateway"
-        className="min-h-screen flex items-center p-8 md:p-20 relative z-10 w-full overflow-hidden"
-      >
-        {/* --- Section 1 Background Video (Independent from scroll) --- */}
-        <div className="absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none bg-[#05080C]">
-          <video
-            src="/blue_power_owl.mp4"
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-full object-cover"
-          />
-        </div>
+      <div className={`fixed inset-0 w-full h-screen z-40 transition-all duration-[1200ms] ease-[cubic-bezier(0.25,1,0.5,1)] origin-center
+        ${isShattered ? 'opacity-0 scale-[1.7] blur-xl pointer-events-none' : 'opacity-100 scale-100 blur-0'}`}>
         
-        {/* --- Dark Overlay to ensure text is readable --- */}
-        <div className="absolute inset-0 bg-[#05080C]/70 z-10 pointer-events-none" />
+        <section id="gateway" className="h-full flex items-center p-8 md:p-20 relative z-10 w-full overflow-hidden">
+          <div className="absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none bg-[#05080C]">
+            <video src="/section1.mp4" autoPlay loop muted playsInline className="w-full h-full object-cover" />
+          </div>
+          <div className="absolute inset-0 bg-[#05080C]/70 z-10 pointer-events-none" />
 
-        {/* --- 2-Column Content Wrapper --- */}
-        <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between relative z-20 gap-12">
-          
-          {/* LEFT COLUMN: Text Content */}
-          <div className="max-w-2xl relative z-20 flex-shrink-0">
-            <div className="badge-mono border-[#00E5FF]/40 text-[#00E5FF] bg-[#00E5FF]/[0.06] inline-block mb-6">
-              IEEE Computer Society · SUSL Chapter Presents
-            </div>
-
-            <img
-              src="https://github.com/nngeek195/mywork/blob/b1/Pasted%20image.png?raw=true"
-              alt="InnovaX Logo"
-              className="w-full max-w-sm md:max-w-md mb-4 drop-shadow-[0_0_15px_rgba(0,229,255,0.3)]"
-            />
-
-            <h1 className="heading-glow font-display text-2xl md:text-3xl font-semibold text-white/90 tracking-wide mb-5">
-              Observe <span className="heading-highlight">Reason</span> Execute
-            </h1>
-
-            <p className="text-[var(--mist)] text-sm md:text-base leading-relaxed tracking-wide mb-8 max-w-xl">
-              An AI-focused idea hackathon bridging inventive thinking and Agentic AI solutions -
-              organised by the IEEE Computer Society Chapter of Sabaragamuwa University of Sri Lanka.
-              Form a crew, chart your proposal, and pitch your way to the treasury.
-            </p>
-
-            <div className="flex flex-wrap gap-4 mb-12">
-              <button className="btn-outline-cyan">
-                SUBMIT PROPOSAL
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-              <button className="btn-outline-cyan border-white/20 text-white hover:border-[#00E5FF] hover:text-[#05080C] bg-transparent hover:bg-[#00E5FF]">
-                SIGN IN
-              </button>
-            </div>
-
-            {/* Stat strip */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-lg border-t border-white/10 pt-8">
-              {STATS.map((s) => (
-                <div key={s.label}>
-                  <p className="font-mono text-lg md:text-xl font-semibold text-[#00E5FF]">{s.value}</p>
-                  <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-[var(--mist)] mt-1">
-                    {s.label}
-                  </p>
-                </div>
-              ))}
+          {/* Gateway Content */}
+          <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between relative z-20 gap-12">
+            <div className="max-w-2xl relative z-20 flex-shrink-0">
+              <div className="badge-mono border-[#00E5FF]/40 text-[#00E5FF] bg-[#00E5FF]/[0.06] inline-block mb-6">
+                IEEE Computer Society · SUSL Chapter Presents
+              </div>
+              <img src="https://github.com/nngeek195/mywork/blob/b1/Pasted%20image.png?raw=true" alt="InnovaX Logo" className="w-full max-w-sm md:max-w-md mb-4 drop-shadow-[0_0_15px_rgba(0,229,255,0.3)]" />
+              <h1 className="heading-glow font-display text-2xl md:text-3xl font-semibold text-white/90 tracking-wide mb-5">
+                Observe <span className="heading-highlight">Reason</span> Execute
+              </h1>
+              <p className="text-[var(--mist)] text-sm md:text-base leading-relaxed tracking-wide mb-8 max-w-xl">
+                An AI-focused idea hackathon bridging inventive thinking and Agentic AI solutions...
+              </p>
+              <div className="flex flex-wrap gap-4 mb-12">
+                <button className="btn-outline-cyan">SUBMIT PROPOSAL</button>
+                <button className="btn-outline-cyan border-white/20 text-white hover:border-[#00E5FF] hover:text-[#05080C] bg-transparent hover:bg-[#00E5FF]">SIGN IN</button>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
       {/* --- NEW: Scroll Wrapper for Sections 2-7 --- */}
       {/* This wrapper is used to calculate the math for the scrolling video */}
