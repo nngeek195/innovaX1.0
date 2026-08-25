@@ -1,26 +1,108 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Mapping the missing variables from page.tsx to your Color Palette */
+  --mist: #D1D5DB; /* Cool Silver */
+  --gold: #00E5FF; /* Mapped 'gold' to Electric Cyan to maintain the cyber aesthetic */
+  --slate-raised: #121822; /* Dark Metallic Slate */
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #05080C; /* Deep Server Black */
+  color: #FFFFFF; /* Pure White */
+  overflow-x: hidden;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+@layer components {
+  /* =========================================
+     Base Layout Components
+  ========================================= */
+  .section-container {
+    @apply min-h-screen flex flex-col justify-center items-center p-6 md:p-12 relative z-10 w-full max-w-7xl mx-auto;
+  }
+
+  .glass-panel {
+    @apply bg-[#121822]/80 backdrop-blur-md border border-white/10 rounded-2xl p-6 md:p-8 transition-all duration-300;
+  }
+
+  .glass-panel:hover {
+    @apply border-[#00E5FF]/50 shadow-[0_0_15px_rgba(0,229,255,0.15)];
+  }
+
+  /* =========================================
+     Buttons
+  ========================================= */
+  .btn-outline-cyan {
+    @apply border border-[#00E5FF] text-[#00E5FF] bg-[#00E5FF]/10 hover:bg-[#00E5FF]/20 px-8 py-3 rounded-full font-bold tracking-[0.15em] text-sm uppercase transition-all flex items-center gap-2;
+  }
+
+  .btn-solid-cyan {
+    @apply bg-gradient-to-r from-[#0055FF] to-[#00E5FF] hover:from-[#00E5FF] hover:to-[#0055FF] text-white px-10 py-4 rounded-full font-bold tracking-[0.15em] uppercase shadow-[0_0_20px_rgba(0,85,255,0.4)] transition-all;
+  }
+
+  /* =========================================
+     Typography & Headings
+  ========================================= */
+  .heading-glow {
+    @apply text-3xl md:text-5xl font-extrabold tracking-widest uppercase text-white mb-12 flex gap-4 items-center;
+  }
+  
+  .heading-highlight {
+    @apply text-[#00E5FF] drop-shadow-[0_0_8px_rgba(0,229,255,0.4)];
+  }
+
+  .heading-sub {
+    @apply text-[var(--mist)] text-sm md:text-base leading-relaxed max-w-2xl mt-4;
+  }
+
+  /* =========================================
+     Missing Classes from page.tsx
+  ========================================= */
+  .badge-mono {
+    @apply border px-3 py-1 rounded text-xs font-mono tracking-widest uppercase;
+  }
+
+  .sector-tag {
+    @apply text-[10px] font-mono tracking-[0.3em] text-[#00E5FF] mb-4 border border-[#00E5FF]/30 px-3 py-1 rounded-full;
+  }
+
+  .chart-grid {
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  /* =========================================
+     Animations & Interactions
+  ========================================= */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .radar-ring {
+    @apply absolute rounded-full border border-[#00E5FF]/30;
+    box-shadow: 0 0 30px rgba(0, 229, 255, 0.1) inset;
+    animation: radar-pulse 4s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+  }
+}
+
+/* Custom Keyframes missing from the Tailwind config */
+@keyframes radar-pulse {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+@keyframes drift {
+  0%, 100% { transform: translateY(-50%) translateX(0); }
+  50% { transform: translateY(-52%) translateX(-15px); }
 }
