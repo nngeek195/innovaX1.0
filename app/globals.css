@@ -106,3 +106,48 @@ body {
   0%, 100% { transform: translateY(-50%) translateX(0); }
   50% { transform: translateY(-52%) translateX(-15px); }
 }
+
+/* =========================================
+   Glass Shatter Effect
+========================================= */
+.glass-shatter-container {
+  position: fixed;
+  inset: 0;
+  z-index: 100; /* Extremely high to sit above EVERYTHING */
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  pointer-events: none;
+}
+
+.shard {
+  width: 100%;
+  height: 100%;
+  opacity: 0; /* Invisible before scrolling */
+  transform-origin: center;
+}
+
+/* When the shattered state hits, fire the animation */
+.shattered .shard {
+  animation: shatterExplosion 1.2s forwards cubic-bezier(0.16, 1, 0.3, 1);
+  animation-delay: var(--d);
+}
+
+@keyframes shatterExplosion {
+  0% {
+    /* Flash into a visible, thick cyan glass */
+    opacity: 1;
+    background: rgba(0, 229, 255, 0.25);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 229, 255, 0.6);
+    transform: scale(1) translate(0, 0) rotate(0);
+  }
+  100% {
+    /* Explode outward, spin, and fade away */
+    opacity: 0;
+    background: rgba(0, 229, 255, 0.05);
+    backdrop-filter: blur(0px);
+    border: 1px solid transparent;
+    transform: scale(0.2) translate(calc(var(--x) * 2), calc(var(--y) * 2)) rotate(var(--r));
+  }
+}
