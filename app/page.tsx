@@ -371,16 +371,16 @@ export default function Home() {
         <section id="treasury" className="section-container pt-0">
           <Reveal className="w-full flex flex-col items-center text-center">
             <SectorTag n="03" label="TREASURY" />
-            <h2 className="heading-glow justify-center">
+            <h2 className="heading-glow justify-center mb-8">
               THE <span className="heading-highlight">PRIZE POOL</span>
             </h2>
-            <p className="heading-sub text-center">
+            <p className="heading-sub text-center mb-8">
               Every finalist walks away with a certificate and mentorship access - the treasury below is
               reserved for the teams who make it to the top of the leaderboard.
             </p>
           </Reveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl items-stretch mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-14 w-full max-w-5xl items-stretch mt-8">
             <Reveal delay={0} className="h-full">
               <div className="glass-panel text-left h-full flex flex-col">
                 <h3 className="text-xs text-[var(--mist)] tracking-widest uppercase mb-1">1st Runner Up</h3>
@@ -392,7 +392,7 @@ export default function Home() {
             </Reveal>
 
             <Reveal delay={120} className="h-full">
-              <div className="glass-panel text-left border-[var(--gold)]/40 relative overflow-hidden transform md:-translate-y-4 h-full flex flex-col shadow-[0_0_30px_rgba(0,229,255,0.12)] mt-4 md:mt-0">
+              <div className="glass-panel text-left border-[var(--gold)]/40 relative overflow-hidden transform md:-translate-y-4 h-full scale-115 flex flex-col shadow-[0_0_30px_rgba(0,229,255,0.12)] mt-4 md:mt-4">
                 <div className="absolute inset-0 bg-gradient-to-b from-[var(--gold)]/10 to-transparent z-0 pointer-events-none" />
                 <span className="badge-mono border-[var(--gold)]/50 text-[var(--gold)] bg-[var(--gold)]/10 absolute top-6 right-6 z-10">
                   Grand Prize
