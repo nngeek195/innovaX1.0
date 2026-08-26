@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth } from '@/lib/firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth, db } from '@/lib/firebase';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import Link from 'next/link';
 
 export default function Login() {
@@ -15,7 +16,7 @@ export default function Login() {
   const [mounted, setMounted] = useState(false);
   const [focusedField, setFocusedField] = useState<'email' | 'password' | null>(null);
 
-  // Mount animation
+  // Mount animation for the UI
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 100);
     return () => clearTimeout(t);
@@ -25,11 +26,45 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     setError('');
+
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push('/dashboard');
+      console.log("--- LOGIN INITIATED ---");
+      // 1. Authenticate with Firebase
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      
+      console.log("Authenticated User ID:", user.uid);
+
+      // Set a session cookie valid for 1 day
+      document.cookie = `innovax_session=${user.uid}; path=/; max-age=86400; SameSite=Strict; Secure`;
+
+      // 2. Security Check: Is this user an Admin?
+      console.log("Checking Admin database...");
+      const adminDoc = await getDoc(doc(db, "admins", user.uid));
+      if (adminDoc.exists()) {
+        console.log("Access Granted: Admin");
+        router.push('/admin');
+        return; // Stop execution here so they route cleanly to admin
+      }
+
+      // 3. Security Check: Is this user a valid registered team/individual?
+      console.log("Checking Registrations database...");
+      const userDoc = await getDoc(doc(db, "registrations", user.uid));
+      if (userDoc.exists()) {
+        console.log("Access Granted: User Dashboard");
+        router.push('/dashboard');
+        return; // Stop execution here so they route cleanly to dashboard
+      }
+
+      // 4. Rejection: They authenticated, but have no database records.
+      console.warn("Access Denied: No database records found for this UID.");
+      await signOut(auth);
+      setError("Unauthorized. No InnovaX registration found for this account.");
+
     } catch (err: any) {
-      setError('Invalid credentials or account does not exist.');
+      console.error("LOGIN FAILED!", err);
+      // We will fall back to your preferred generic message, or print the Firebase message if helpful
+      setError("Invalid credentials or account does not exist.");
     } finally {
       setLoading(false);
     }
@@ -81,15 +116,15 @@ export default function Login() {
             <div className="login-card-accent" />
 
             <h2 className="text-2xl md:text-3xl font-extrabold tracking-[0.12em] uppercase text-white mb-2 text-left">
-              SIGN <span className="text-[#00E5FF] drop-shadow-[0_0_8px_rgba(0,229,255,0.4)]">IN</span>
+              PORTAL <span className="text-[#00E5FF] drop-shadow-[0_0_8px_rgba(0,229,255,0.4)]">ACCESS</span>
             </h2>
             <p className="text-[var(--mist)] text-xs tracking-widest uppercase mb-8 text-left">
               AUTHENTICATE TO ACCESS THE COMMAND CENTER
             </p>
 
             {error && (
-              <div className="login-error">
-                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="login-error flex items-start gap-3 bg-red-500/10 border border-red-500/50 text-red-400 p-4 rounded-lg mb-6 text-sm">
+                <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
                 <span>{error}</span>
@@ -145,7 +180,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="login-submit btn-solid-cyan"
+                className="login-submit btn-solid-cyan w-full justify-center"
               >
                 {loading ? (
                   <span className="flex items-center gap-3 justify-center">
@@ -157,7 +192,7 @@ export default function Login() {
                   </span>
                 ) : (
                   <span className="flex items-center gap-3 justify-center">
-                    INITIATE SESSION
+                    SIGN IN
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
@@ -167,17 +202,17 @@ export default function Login() {
             </form>
 
             {/* Footer */}
-            <div className="login-footer">
+            <div className="login-footer mt-8">
               <div className="login-divider">
                 <div className="login-divider-line" />
                 <span className="login-divider-text">OR</span>
                 <div className="login-divider-line" />
               </div>
-              <p className="text-xs text-gray-500 tracking-[0.2em] uppercase">
+              <p className="text-xs text-[var(--mist)] tracking-[0.2em] uppercase text-center mt-6">
                 NO ACCOUNT?{' '}
                 <Link
                   href="/register"
-                  className="text-[#00E5FF] hover:text-white transition-colors duration-300 font-bold"
+                  className="text-[#00E5FF] hover:text-white transition-colors duration-300 font-bold ml-2"
                 >
                   REGISTER HERE
                 </Link>
@@ -186,7 +221,7 @@ export default function Login() {
           </div>
 
           {/* Bottom attribution */}
-          <div className="login-attribution">
+          <div className="login-attribution text-center mt-6">
             <span className="font-mono text-[9px] tracking-[0.3em] text-[var(--mist)]/40 uppercase">
               InnovaX 1.0 · IEEE CS SUSL
             </span>

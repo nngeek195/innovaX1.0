@@ -234,6 +234,129 @@ export default function Home() {
   const currentPartner = PARTNERS[activePartner];
   const currentLogoBroken = Boolean(brokenPartnerLogos[currentPartner.logo]);
 
+
+  // --- CYBER CIRCUIT CANVAS COMPONENT ---
+function CircuitBackground() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    
+    // Match parent size
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    const GRID_SIZE = 20;
+    const WIDTH = Math.floor(canvas.width / GRID_SIZE);
+    const HEIGHT = Math.floor(canvas.height / GRID_SIZE);
+
+    // Initialize Empty World
+    let WORLD = Array.from({ length: WIDTH }, () => Array(HEIGHT).fill(-1));
+    let WORLD_LINK: { a: number[]; b: number[]; c: number }[] = [];
+
+    // Seed the initial node in the center
+    WORLD[Math.floor(WIDTH / 2)][Math.floor(HEIGHT / 2)] = 0;
+
+    const animate = () => {
+      let score = 0;
+      let map = [];
+      for (let x = 0; x < WIDTH; x++) {
+        for (let y = 0; y < HEIGHT; y++) {
+          if (WORLD[x][y] !== -1) {
+            score++;
+            map.push([x, y]);
+          }
+        }
+      }
+
+      // Calculate how many nodes to sprout this frame
+      let stamina = Math.floor(score / 15) + 1;
+      while (map.length > 0 && stamina > 0) {
+        popTeam(0, map);
+        stamina--;
+      }
+    };
+
+    const popTeam = (team: number, map: number[][]) => {
+      const cell = map[Math.floor(Math.random() * map.length)];
+      const x = cell[0];
+      const y = cell[1];
+      const potential = [];
+
+      // Check valid neighbors
+      if (x > 0 && WORLD[x - 1][y] !== team) potential.push([x - 1, y]);
+      if (x < WIDTH - 1 && WORLD[x + 1][y] !== team) potential.push([x + 1, y]);
+      if (y > 0 && WORLD[x][y - 1] !== team) potential.push([x, y - 1]);
+      if (y < HEIGHT - 1 && WORLD[x][y + 1] !== team) potential.push([x, y + 1]);
+
+      if (potential.length) {
+        const p = potential[Math.floor(Math.random() * potential.length)];
+        WORLD[p[0]][p[1]] = team;
+        WORLD_LINK.push({ a: [x, y], b: [p[0], p[1]], c: team });
+      }
+    };
+
+    const render = () => {
+      // Clear frame
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const dx = Math.floor((canvas.width - WIDTH * GRID_SIZE) / 2);
+      const dy = Math.floor((canvas.height - HEIGHT * GRID_SIZE) / 2);
+
+      // Cyan color with opacity for the nodes
+      ctx.fillStyle = 'rgba(0, 229, 255, 0.4)';
+      for (let x = 0; x < WIDTH; x++) {
+        for (let y = 0; y < HEIGHT; y++) {
+          if (WORLD[x][y] !== -1) {
+            ctx.beginPath();
+            ctx.arc(x * GRID_SIZE + dx, y * GRID_SIZE + dy, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+
+      // Draw the connecting circuit lines
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = 'rgba(0, 229, 255, 0.3)';
+      for (let i = 0; i < WORLD_LINK.length; i++) {
+        const link = WORLD_LINK[i];
+        if (WORLD[link.a[0]][link.a[1]] !== WORLD[link.b[0]][link.b[1]] || WORLD[link.a[0]][link.a[1]] !== link.c) {
+          WORLD_LINK.splice(i--, 1);
+          continue;
+        }
+        ctx.beginPath();
+        const ddx = link.a[0] - link.b[0];
+        const ddy = link.a[1] - link.b[1];
+        ctx.moveTo(link.a[0] * GRID_SIZE + dx - ddx * 5, link.a[1] * GRID_SIZE + dy - ddy * 5);
+        ctx.lineTo(link.b[0] * GRID_SIZE + dx + ddx * 5, link.b[1] * GRID_SIZE + dy + ddy * 5);
+        ctx.stroke();
+      }
+    };
+
+    const loop = () => {
+      animate();
+      render();
+      animationFrameId = requestAnimationFrame(loop);
+    };
+
+    loop();
+
+    // Cleanup on unmount
+    return () => cancelAnimationFrame(animationFrameId);
+  }, []);
+
+  return (
+    <canvas 
+      ref={canvasRef} 
+      className="absolute inset-0 w-full h-full z-0 opacity-60 mix-blend-screen pointer-events-none" 
+    />
+  );
+}
+
   // ==========================================
   // UNIFIED SCROLL LOGIC
   // ==========================================
@@ -483,31 +606,117 @@ export default function Home() {
 
               {/* RIGHT: CHAPTERS (Sector 01) */}
               <div className="w-screen h-full flex items-center justify-center overflow-y-auto">
-                <section id="chapters" className="section-container pt-0 w-full">
-                  <Reveal className="w-full flex flex-col items-center text-center">
-                    <SectorTag n="01" label="CHAPTERS" />
-                    <h2 className="heading-glow justify-center">
-                      WHO&apos;S ON THIS <span className="heading-highlight">EXPEDITION</span>
-                    </h2>
-                    <p className="heading-sub text-center mb-10">
-                      InnovaX is run by student volunteers of the IEEE Computer Society Chapter at Sabaragamuwa
+              <section id="chapters" className="section-container pt-0 w-full relative z-20">
+  <Reveal className="w-full flex flex-col items-center text-center mb-10">
+    <SectorTag n="01" label="CHAPTERS" />
+    <h2 className="heading-glow justify-center">
+      WHO&apos;S ON THIS <span className="heading-highlight">EXPEDITION</span>
+    </h2>
+    <p className="heading-sub text-center">
+      InnovaX is run by student volunteers of the IEEE Computer Society Chapter at Sabaragamuwa
                       University of Sri Lanka. Teams of 2 – 4 undergraduates pick one track below and spend six
                       weeks turning an idea into a working Agentic AI proposal.
-                    </p>
-                  </Reveal>
+    </p>
+  </Reveal>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
-                    {TRACKS.map((t, i) => (
-                      <Reveal key={t.code} delay={i * 120}>
-                        <div className="glass-panel h-full text-left flex flex-col hover:scale-105">
-                          <span className="font-mono text-xs text-[#00E5FF]/70 tracking-widest mb-4">{t.code}</span>
-                          <h3 className="font-display text-lg font-semibold text-white mb-3">{t.title}</h3>
-                          <p className="text-sm text-[var(--mist)] leading-relaxed">{t.desc}</p>
-                        </div>
-                      </Reveal>
-                    ))}
-                  </div>
-                </section>
+  <Reveal className="w-full flex justify-center h-[500px] mt-8 perspective-[70em]">
+    <div className="cyber-book relative h-[80%] max-h-[450px] min-h-[300px] w-full max-w-[800px] mx-auto border-2 border-[#00E5FF]/30 rounded-lg shadow-[0_0_80px_rgba(0,229,255,0.15)] transform-style-3d transition-shadow duration-500 hover:shadow-[0_0_120px_rgba(0,229,255,0.4)]">
+      
+      {/* =========================================
+          STATIC LEFT PAGE (Visible when book is closed)
+      ========================================= */}
+      <div className="absolute top-0 left-0 w-1/2 h-full z-0 flex flex-col items-center justify-center p-6 border-r border-[#00E5FF]/10 overflow-hidden">
+        <a href="#" className="flex flex-col items-center group/dl cursor-pointer z-10 w-full">
+          <div className="w-20 h-20 rounded-full border border-[#00E5FF]/50 flex items-center justify-center bg-[#00E5FF]/10 mb-6 group-hover/dl:bg-[#00E5FF]/30 transition-all duration-300 shadow-[0_0_20px_rgba(0,229,255,0.2)] group-hover/dl:shadow-[0_0_40px_rgba(0,229,255,0.6)] group-hover/dl:scale-110">
+            {/* Bouncing SVG Icon */}
+            <svg className="w-10 h-10 text-[#00E5FF] animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+          </div>
+          <span className="font-display text-white text-base md:text-lg tracking-widest text-center relative after:absolute after:-bottom-2 after:left-1/2 after:-translate-x-1/2 after:h-[2px] after:w-0 group-hover/dl:after:w-full after:bg-[#00E5FF] after:transition-all after:duration-300">
+            DOWNLOAD<br/>DELEGATE BOOK
+          </span>
+        </a>
+      </div>
+
+      {/* =========================================
+          PAGE 1: Cover (Right Side) & Track 1
+      ========================================= */}
+      <div className="cyber-page z-[3]" onClick={(e) => e.currentTarget.classList.toggle('flipped')}>
+        
+        {/* SIDE 1: The Cover */}
+        <div className="cyber-side side-1 flex flex-col items-center justify-center text-center overflow-hidden group">
+          <CircuitBackground />
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="w-16 h-16 border border-[#00E5FF]/40 rounded-full flex items-center justify-center mb-4 shadow-[0_0_15px_rgba(0,229,255,0.2)] bg-[#05080C]/50 backdrop-blur-sm transition-transform group-hover:scale-110">
+              <span className="font-mono text-xs text-[#00E5FF] tracking-widest">INIT</span>
+            </div>
+            <h3 className="font-display text-3xl font-bold text-white tracking-widest mb-2 shadow-black drop-shadow-md relative inline-block after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 group-hover:after:w-full after:bg-[#00E5FF] after:transition-all after:duration-500">
+              EXPEDITION
+            </h3>
+            <p className="text-[var(--mist)] text-sm font-mono tracking-[0.3em] drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] mt-2">MANIFESTO</p>
+            <div className="mt-12 badge-mono border-[#00E5FF]/40 text-[#00E5FF] bg-[#00E5FF]/20 backdrop-blur-md cursor-pointer animate-pulse">CLICK TO OPEN</div>
+          </div>
+        </div>
+        
+        {/* SIDE 2: Track 1 (Visible when flipped to the left) */}
+        <div className="cyber-side side-2 flex flex-col justify-center group">
+          <span className="font-mono text-xs text-[#00E5FF] bg-[#00E5FF]/10 px-2 py-1 rounded inline-block w-max mb-4">{TRACKS[0].code}</span>
+          <div className="w-max max-w-full mb-4">
+            <h3 className="font-display text-2xl font-bold text-white relative inline-block after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 group-hover:after:w-full after:bg-[#00E5FF] after:transition-all after:duration-500">{TRACKS[0].title}</h3>
+          </div>
+          <p className="text-base text-[var(--mist)] leading-relaxed">{TRACKS[0].desc}</p>
+        </div>
+      </div>
+
+      {/* =========================================
+          PAGE 2: Track 2 & Track 3
+      ========================================= */}
+      <div className="cyber-page z-[2]" onClick={(e) => e.currentTarget.classList.toggle('flipped')}>
+        
+        {/* SIDE 1: Track 2 (Visible on right when Page 1 flips) */}
+        <div className="cyber-side side-1 flex flex-col justify-center group">
+          <span className="font-mono text-xs text-[#00E5FF] bg-[#00E5FF]/10 px-2 py-1 rounded inline-block w-max mb-4">{TRACKS[1].code}</span>
+          <div className="w-max max-w-full mb-4">
+            <h3 className="font-display text-2xl font-bold text-white relative inline-block after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 group-hover:after:w-full after:bg-[#00E5FF] after:transition-all after:duration-500">{TRACKS[1].title}</h3>
+          </div>
+          <p className="text-base text-[var(--mist)] leading-relaxed">{TRACKS[1].desc}</p>
+        </div>
+        
+        {/* SIDE 2: Track 3 (Visible on left when Page 2 flips) */}
+        <div className="cyber-side side-2 flex flex-col justify-center group">
+          <span className="font-mono text-xs text-[#00E5FF] bg-[#00E5FF]/10 px-2 py-1 rounded inline-block w-max mb-4">{TRACKS[2].code}</span>
+          <div className="w-max max-w-full mb-4">
+            <h3 className="font-display text-2xl font-bold text-white relative inline-block after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 group-hover:after:w-full after:bg-[#00E5FF] after:transition-all after:duration-500">{TRACKS[2].title}</h3>
+          </div>
+          <p className="text-base text-[var(--mist)] leading-relaxed">{TRACKS[2].desc}</p>
+        </div>
+      </div>
+
+      {/* =========================================
+          PAGE 3: Outro
+      ========================================= */}
+      <div className="cyber-page z-[1]" onClick={(e) => e.currentTarget.classList.toggle('flipped')}>
+        
+        {/* SIDE 1: End / Choose Path (Visible on right when Page 2 flips) */}
+        <div className="cyber-side side-1 flex flex-col items-center justify-center text-center group">
+           <div className="w-max max-w-full mb-4">
+             <h3 className="font-display text-xl font-bold text-white relative inline-block after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 group-hover:after:w-full after:bg-[#00E5FF] after:transition-all after:duration-500">
+               CHOOSE YOUR PATH
+             </h3>
+           </div>
+           <p className="text-sm text-[var(--mist)] max-w-[80%]">Select one track and spend six weeks turning your idea into a working Agentic AI proposal.</p>
+        </div>
+        
+        {/* SIDE 2: System End (Blank back page) */}
+        <div className="cyber-side side-2 flex items-center justify-center">
+           <p className="font-mono text-xs text-[var(--mist)]/40 tracking-[0.5em]">SYSTEM_END</p>
+        </div>
+      </div>
+
+    </div>
+  </Reveal>
+</section>
               </div>
 
             </div>
