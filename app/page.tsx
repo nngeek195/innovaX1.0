@@ -589,7 +589,7 @@ export default function Home() {
             >
               
               {/* LEFT: PARTNERS (Sector 04) */}
-                <div className="w-screen h-full flex items-center justify-center overflow-y-auto">
+<div className="w-screen h-full flex items-center justify-center overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
   
  
         <section id="partners" className="section-container text-center">
@@ -642,7 +642,7 @@ export default function Home() {
               </div>
 
               {/* RIGHT: FAQ (Sector 05) */}
-              <div className="w-screen h-full flex items-center justify-center overflow-y-auto">
+<div className="w-screen h-full flex items-center justify-center overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 <section id="faq" className="section-container">
                   <Reveal className="w-full flex flex-col items-center text-center">
                     <SectorTag n="05" label="FAQ" />
