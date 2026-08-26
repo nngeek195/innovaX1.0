@@ -77,30 +77,34 @@ const PARTNERS = [
   {
     tier: 'Platinum',
     badge: '/Platinum.png',
-    logo: '/sponsors/platinum-logo.png',
-    company: 'Platinum Sponsor Name',
-    description: 'Add two or three lines about the platinum sponsor, their work, and how they support innovation in the community.',
+    logo: '/sponsors/wso2-vector-logo-2022.png',
+    logoBg: '#FFFFFF',
+    company: 'WSO2',
+    description: 'WSO2 is a global technology company that develops foundational platforms for enterprises to meet their agentic needs.',
   },
   {
     tier: 'Gold',
     badge: '/gold.png',
-    logo: '/sponsors/gold-logo.png',
-    company: 'Gold Sponsor Name',
-    description: 'Add two or three lines about the gold sponsor, their work, and how they support the InnovaX community.',
+    logo: '/sponsors/dialog.png',
+    logoBg: '#FFFFFF',
+    company: 'Dialog Axiata PLC',
+    description: 'Dialog Axiata Group (Dialog), a subsidiary of Axiata Group Berhad (Axiata), operates Sri Lanka\’s leading quad-play connectivity provider.',
   },
   {
     tier: 'Silver',
     badge: '/silver.png',
-    logo: '/sponsors/silver-logo.png',
-    company: 'Silver Sponsor Name',
-    description: 'Add two or three lines about the silver sponsor, their work, and their contribution to this competition.',
+    logo: '/sponsors/keels.png',
+    logoBg: '#72ff4f',
+    company: 'Keells',
+    description: 'Keells is one of Sri Lanka\'s largest supermarket chains with 132 stores located across the island.',
   },
   {
     tier: 'Bronze',
     badge: '/bronze.png',
-    logo: '/sponsors/bronze-logo.png',
-    company: 'Bronze Sponsor Name',
-    description: 'Add two or three lines about the bronze sponsor, their work, and the value they bring to the explorer community.',
+    logo: '/sponsors/commercial.png',
+    logoBg: '#FFFFFF',
+    company: 'Commercial Bank of Ceylon PLC',
+    description: 'Having set a benchmark in banking in Sri Lanka we have set standards, created an identity and forged an unsurpassable trend.',
   },
 ];
 
@@ -189,6 +193,7 @@ export default function Home() {
   const [activeSection, setActiveSection] = useState('gateway');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [activePartner, setActivePartner] = useState(0);
+  const [brokenPartnerLogos, setBrokenPartnerLogos] = useState<Record<string, boolean>>({});
   const [isShattered, setIsShattered] = useState(false);
   
   const rootRef = useRef<HTMLElement>(null);
@@ -202,6 +207,8 @@ export default function Home() {
   // Track 2: Partners & FAQ
   const horizontalContainerRef2 = useRef<HTMLDivElement>(null);
   const horizontalTrackRef2 = useRef<HTMLDivElement>(null);
+  const currentPartner = PARTNERS[activePartner];
+  const currentLogoBroken = Boolean(brokenPartnerLogos[currentPartner.logo]);
 
   // ==========================================
   // UNIFIED SCROLL LOGIC
@@ -580,19 +587,38 @@ export default function Home() {
                         })}
                       </div>
                       <div className="partner-details" aria-live="polite">
-                        <div className="partner-logo-frame">
-                          <img
-                            src={PARTNERS[activePartner].logo}
-                            alt={`${PARTNERS[activePartner].company} logo`}
-                            className="partner-logo"
-                            onError={(event) => { event.currentTarget.style.display = 'none'; }}
-                          />
-                          <span className="partner-logo-fallback" aria-hidden="true">{PARTNERS[activePartner].company.slice(0, 2).toUpperCase()}</span>
+                        <div className="partner-logo-frame" style={{ backgroundColor: currentPartner.logoBg }}>
+                          {!currentLogoBroken && (
+                            <img
+                              key={currentPartner.logo}
+                              src={currentPartner.logo}
+                              alt={`${currentPartner.company} logo`}
+                              className="partner-logo"
+                              loading="eager"
+                              decoding="async"
+                              onLoad={() => {
+                                setBrokenPartnerLogos((prev) => {
+                                  if (!prev[currentPartner.logo]) {
+                                    return prev;
+                                  }
+                                  const next = { ...prev };
+                                  delete next[currentPartner.logo];
+                                  return next;
+                                });
+                              }}
+                              onError={() => {
+                                setBrokenPartnerLogos((prev) => ({ ...prev, [currentPartner.logo]: true }));
+                              }}
+                            />
+                          )}
+                          {currentLogoBroken && (
+                            <span className="partner-logo-fallback" aria-hidden="true">{currentPartner.company.slice(0, 2).toUpperCase()}</span>
+                          )}
                         </div>
                         <div>
-                          <p className="partner-tier">{PARTNERS[activePartner].tier} Partner</p>
-                          <h3 className="font-display text-xl md:text-2xl font-bold text-white">{PARTNERS[activePartner].company}</h3>
-                          <p className="text-sm text-[var(--mist)] mt-2 leading-relaxed max-w-xl">{PARTNERS[activePartner].description}</p>
+                          <p className="partner-tier">{currentPartner.tier} Partner</p>
+                          <h3 className="partner-company font-display text-xl md:text-2xl font-bold">{currentPartner.company}</h3>
+                          <p className="text-sm text-[var(--mist)] mt-2 leading-relaxed max-w-xl">{currentPartner.description}</p>
                         </div>
                       </div>
                     </div>

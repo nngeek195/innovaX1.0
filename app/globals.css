@@ -277,13 +277,13 @@ body {
 
   .partners-stage {
     @apply relative w-full flex flex-col items-center;
-    min-height: 680px;
+    min-height: 590px;
   }
 
   .partners-carousel {
     @apply relative flex items-center justify-center;
     width: min(90vw, 460px);
-    height: 430px;
+    height: 360px;
     perspective: 1100px;
     transform-style: preserve-3d;
   }
@@ -335,7 +335,8 @@ body {
   }
 
   .partner-details {
-    @apply relative z-20 flex items-start gap-4 w-full max-w-2xl text-left border-t border-[#00E5FF]/25 pt-5;
+    @apply relative z-20 flex items-center gap-5 w-full max-w-2xl text-left border-t border-[#00E5FF]/25 pt-5;
+    margin-top: -22px;
     animation: partner-detail-enter 0.45s ease both;
   }
 
@@ -344,28 +345,34 @@ body {
   }
 
   .partner-logo-frame {
-    @apply relative w-20 h-16 shrink-0 flex items-center justify-center rounded border border-white/10 bg-[var(--slate-raised)] overflow-hidden;
+    @apply relative w-24 h-16 shrink-0 flex items-center justify-center rounded border border-white/20 overflow-hidden p-2;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   }
 
   .partner-logo {
-    @apply max-w-full max-h-full object-contain;
+    @apply w-full h-full object-contain;
   }
 
   .partner-logo-fallback {
-    @apply absolute font-mono text-xs tracking-widest text-[var(--mist)];
+    @apply absolute font-mono text-xs tracking-widest text-slate-700;
   }
 
   .partner-tier {
     @apply text-[10px] font-mono tracking-[0.2em] uppercase text-[#00E5FF] mb-1;
   }
 
+  .partner-company {
+    @apply text-[#EAF8FF];
+    text-shadow: 0 0 14px rgba(0, 229, 255, 0.28);
+  }
+
   @media (max-width: 640px) {
     .partners-stage {
-      min-height: 600px;
+      min-height: 520px;
     }
 
     .partners-carousel {
-      height: 390px;
+      height: 320px;
     }
 
     .partners-carousel > .partner-card {
@@ -377,7 +384,7 @@ body {
     }
 
     .partner-logo-frame {
-      @apply w-16 h-14;
+      @apply w-20 h-14;
     }
   }
 
