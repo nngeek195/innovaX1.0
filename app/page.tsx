@@ -389,7 +389,7 @@ export default function Home() {
               <div className="w-screen h-full flex items-center justify-center overflow-y-auto">
                 <section id="treasury" className="section-container pt-0 w-full">
                   <Reveal className="w-full flex flex-col items-center text-center">
-                    <SectorTag n="03" label="TREASURY" />
+                    <SectorTag n="02" label="TREASURY" />
                     <h2 className="heading-glow justify-center mb-8">
                       THE <span className="heading-highlight">PRIZE POOL</span>
                     </h2>
@@ -490,13 +490,15 @@ export default function Home() {
                         <h3 className="font-display text-lg font-bold text-white">{item.title}</h3>
                         <p className="text-sm text-[var(--mist)] mt-2">{item.desc}</p>
                       </div>
+                      <span className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full animate-ping ${item.gold ? 'bg-[var(--gold)] shadow-[0_0_12px_var(--gold)]' : 'bg-[#00E5FF] shadow-[0_0_10px_#00E5FF]'}`} />
                       <span className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full ${item.gold ? 'bg-[var(--gold)] shadow-[0_0_12px_var(--gold)]' : 'bg-[#00E5FF] shadow-[0_0_10px_#00E5FF]'}`} />
                       <div className="w-5/12"></div>
                     </>
                   ) : (
                     <>
                       <div className="w-5/12 text-right pr-8"></div>
-                      <span className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full ${item.gold ? 'bg-[var(--gold)] shadow-[0_0_12px_var(--gold)]' : 'bg-white shadow-[0_0_10px_white]'}`} />
+                      <span className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full animate-ping ${item.gold ? 'bg-[var(--gold)] shadow-[0_0_12px_var(--gold)]' : 'bg-[#ffd700] shadow-[0_0_10px_white]'}`} />
+                      <span className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full ${item.gold ? 'bg-[var(--gold)] shadow-[0_0_12px_var(--gold)]' : 'bg-[#ffd700] shadow-[0_0_10px_white]'}`} />
                       <div className="w-5/12 pl-8 text-left bg-[#121822] pt-4 pb-4 rounded-xl">
                         <div className={`w-8/12 text-left pr-6 pb-4 font-mono font-bold text-sm tracking-widest ${item.gold ? 'text-[var(--gold)]' : 'text-[#00E5FF]'}`}>
                           {item.date}
