@@ -273,6 +273,50 @@ body {
     animation: field-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) 1.3s forwards;
   }
 
+  .partners-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-14;
+  }
+
+  .partner-card {
+    @apply flex flex-col items-center text-center;
+  }
+
+  .partner-badge-button {
+    @apply relative flex items-center justify-center w-56 h-56 cursor-pointer;
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), filter 0.45s ease;
+  }
+
+  .partner-badge-button:hover,
+  .partner-badge-button:focus-visible {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 24px rgba(0, 229, 255, 0.35));
+    outline: none;
+  }
+
+  .partner-badge {
+    @apply w-full h-full object-contain;
+  }
+
+  .partner-info {
+    @apply flex items-start gap-4 text-left w-full mt-4;
+  }
+
+  .partner-logo-frame {
+    @apply relative w-20 h-16 shrink-0 flex items-center justify-center rounded border border-white/10 bg-[var(--slate-raised)] overflow-hidden;
+  }
+
+  .partner-logo {
+    @apply max-w-full max-h-full object-contain;
+  }
+
+  .partner-logo-fallback {
+    @apply absolute font-mono text-xs tracking-widest text-[var(--mist)];
+  }
+
+  .partner-tier {
+    @apply text-[10px] font-mono tracking-[0.2em] uppercase text-[#00E5FF] mb-1;
+  }
+
   /* =========================================
      Cyber Owl — Container & Effects
   ========================================= */
