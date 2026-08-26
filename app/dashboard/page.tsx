@@ -4,28 +4,80 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
 
 export default function Dashboard() {
   const router = useRouter();
   const [userData, setUserData] = useState<any>(null);
+  const [systemConfig, setSystemConfig] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
+  
+  // Submission States
+  const [proposalUploaded, setProposalUploaded] = useState(false);
+  const [videoLink, setVideoLink] = useState('');
 
+  // 1. Authenticate & Fetch Data
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        // Listen to User Data
         const docRef = doc(db, "registrations", user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setUserData(docSnap.data());
-        }
-        setLoading(false);
+        const unsubscribeUser = onSnapshot(docRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setUserData(data);
+            setProposalUploaded(data.proposalUploaded || false);
+            setVideoLink(data.prototypeLink || '');
+          }
+        });
+
+        // Listen to Global System Config
+        const sysRef = doc(db, "settings", "system");
+        const unsubscribeSys = onSnapshot(sysRef, (sysSnap) => {
+          if (sysSnap.exists()) {
+            setSystemConfig(sysSnap.data());
+          }
+          setLoading(false);
+        });
+
+        return () => {
+          unsubscribeUser();
+          unsubscribeSys();
+        };
       } else {
         router.push('/login');
       }
     });
     return () => unsubscribe();
   }, [router]);
+
+  // 2. Handlers for Submissions
+  const handleProposalCheck = async (checked: boolean) => {
+    setUpdating(true);
+    try {
+      await updateDoc(doc(db, "registrations", auth.currentUser!.uid), {
+        proposalUploaded: checked
+      });
+      setProposalUploaded(checked);
+    } catch (err) {
+      alert("Failed to update status.");
+    }
+    setUpdating(false);
+  };
+
+  const handleVideoSubmit = async () => {
+    setUpdating(true);
+    try {
+      await updateDoc(doc(db, "registrations", auth.currentUser!.uid), {
+        prototypeLink: videoLink
+      });
+      alert("Video link submitted successfully!");
+    } catch (err) {
+      alert("Failed to submit link.");
+    }
+    setUpdating(false);
+  };
 
   if (loading) return <div className="min-h-screen bg-[#05080C] flex items-center justify-center text-[#00E5FF] font-mono tracking-widest">LOADING SECURE DATA...</div>;
 
@@ -42,8 +94,57 @@ export default function Dashboard() {
           <button onClick={() => signOut(auth)} className="text-xs text-gray-500 hover:text-white border border-gray-700 px-4 py-2 rounded transition-colors tracking-widest">LOGOUT</button>
         </div>
 
+        {/* --- PHASE 1: PROPOSAL SUBMISSION --- */}
+        {systemConfig?.phase1Open && (
+          <div className="glass-panel border-[#00E5FF]/40 mb-8 bg-[#00E5FF]/5">
+            <h2 className="text-[#00E5FF] font-display font-bold text-xl mb-2">PHASE 1: PROPOSAL SUBMISSION</h2>
+            <p className="text-sm text-gray-400 mb-6">Upload your proposal document to our secure drive folder. Once uploaded, confirm your submission below.</p>
+            
+            <a href="https://drive.google.com/drive/folders/YOUR_FOLDER_ID" target="_blank" rel="noopener noreferrer" className="btn-outline-cyan inline-block mb-6">
+              OPEN UPLOAD FOLDER
+            </a>
+
+            <label className="flex items-center gap-4 p-4 border border-[#121822] rounded-lg bg-[#05080C] cursor-pointer hover:border-gray-600 transition-colors">
+              <input 
+                type="checkbox" 
+                checked={proposalUploaded}
+                onChange={(e) => handleProposalCheck(e.target.checked)}
+                disabled={updating}
+                className="w-5 h-5 accent-[#00E5FF] bg-[#121822] border-white/10"
+              />
+              <span className="text-sm tracking-wide">I confirm that my team has uploaded the proposal document to the drive.</span>
+            </label>
+          </div>
+        )}
+
+        {/* --- PHASE 2: PROTOTYPE & VIDEO SUBMISSION --- */}
+        {systemConfig?.phase2Open && userData.selectedForRound2 && (
+          <div className="glass-panel border-[#00E5FF]/40 mb-8 shadow-[0_0_30px_rgba(0,229,255,0.1)]">
+            <h2 className="text-[#00E5FF] font-display font-bold text-xl mb-2">PHASE 2: PROTOTYPE & VIDEO</h2>
+            <p className="text-sm text-gray-400 mb-6">Congratulations on advancing! Paste the public URL to your social media pitch video below.</p>
+            
+            <div className="flex gap-4">
+              <input 
+                type="url" 
+                placeholder="e.g., https://youtube.com/watch?v=..." 
+                value={videoLink}
+                onChange={(e) => setVideoLink(e.target.value)}
+                className="flex-1 bg-[#121822]/50 border border-white/10 rounded-lg p-3 text-white focus:border-[#00E5FF] focus:outline-none transition-colors"
+              />
+              <button 
+                onClick={handleVideoSubmit}
+                disabled={updating || !videoLink}
+                className="btn-solid-cyan px-8 py-3 rounded-lg"
+              >
+                SUBMIT LINK
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* --- EXISTING USER DATA SECTIONS --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="glass-panel border-[#00E5FF]/20">
+          <div className="glass-panel border-white/10">
             <h3 className="text-[#00E5FF] font-mono text-xs tracking-[0.2em] mb-6 uppercase">Primary Contact</h3>
             <div className="space-y-4">
               <div><p className="text-xs text-gray-500">NAME</p><p>{userData.leader.firstName} {userData.leader.lastName}</p></div>
