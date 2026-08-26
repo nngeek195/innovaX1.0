@@ -520,18 +520,9 @@ export default function Home() {
             >
               
               {/* LEFT: PARTNERS (Sector 04) */}
-              <div className="w-screen h-full flex items-center justify-center overflow-y-auto">
-                <section id="partners" className="section-container text-center">
-                  <Reveal className="w-full flex flex-col items-center">
-                    <SectorTag n="04" label="PARTNERS" />
-                    <h2 className="heading-glow justify-center mb-8">
-                      THE <span className="heading-highlight">GUARDIANS</span>
-                    </h2>
-                    <p className="text-[var(--mist)] italic text-sm mb-10 text-center max-w-xl">
-                      &ldquo;These are the guardians whose strength carries every explorer this far.&rdquo;
-                    </p>
-                  </Reveal>
-                </section>
+                <div className="w-screen h-full flex items-center justify-center overflow-y-auto">
+  
+ 
         <section id="partners" className="section-container text-center">
           <Reveal className="w-full flex flex-col items-center">
             <SectorTag n="04" label="PARTNERS" />
