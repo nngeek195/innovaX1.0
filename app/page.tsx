@@ -3,8 +3,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FaPlus } from "react-icons/fa";
 import { FaInstagram, FaLinkedinIn, FaYoutube, FaFacebookF} from "react-icons/fa6";
-import SmoothFollower from './components/SmoothFollower';
+import dynamic from 'next/dynamic';
 import CSChapterLogo from '../public/CSChapterLogo.png'
+
+const SmoothFollower = dynamic(() => import('./components/SmoothFollower'), { 
+  ssr: false 
+});
 
 /* ------------------------------------------------------------------ */
 /*  Demo content                                                      */
@@ -45,31 +49,50 @@ const TRACKS = [
   },
 ];
 
+// --- UPDATED TIMELINE ROADMAP ---
 const TIMELINE = [
   {
     date: 'AUGUST 25',
-    title: 'Registration Opens',
+    title: 'Registration Opening',
     desc: 'The gates open. Form your crew of 2–4 and claim your team slot before it fills.',
+    side: 'right',
+  },
+  {
+    date: 'SEPTEMBER 02',
+    title: 'Registration Deadline',
+    desc: 'The final call to secure your spot. Registrations officially close at midnight.',
+    side: 'left',
+  },
+  {
+    date: 'SEPTEMBER 06',
+    title: 'Technical Session 02',
+    desc: 'Join our expert speakers for a deep dive into building Agentic workflows and structuring your proposal.',
     side: 'right',
   },
   {
     date: 'SEPTEMBER 08',
     title: 'Proposal Submission',
-    desc: 'Submit your idea and technical plan. This single document decides who advances.',
+    desc: 'Submit your architecture and technical plan. This single document decides who advances to the next stage.',
     side: 'left',
     tag: 'Crucial Phase',
   },
   {
-    date: 'OCTOBER 10 — AM',
-    title: 'Final Round',
-    desc: 'The Top 10 teams pitch and demo their Agentic AI builds live to the judging panel.',
+    date: 'SEPTEMBER 22',
+    title: 'Idea Submission Deadline',
+    desc: 'Finalize and submit your refined model concepts for the upcoming prototype phase.',
     side: 'right',
   },
   {
-    date: 'OCTOBER 10 — PM',
-    title: 'Results & Closing',
-    desc: 'Winners are announced and the prize pool is awarded at the closing ceremony.',
+    date: 'OCTOBER 03',
+    title: 'Announce Top 10 Teams',
+    desc: 'The judging panel reveals the official InnovaX Finalists who will compete in the live showdown.',
     side: 'left',
+  },
+  {
+    date: 'OCTOBER 10',
+    title: 'Final Round',
+    desc: 'The Top 10 teams pitch and demo their Agentic AI builds live to the judging panel. Winners are announced!',
+    side: 'right',
     gold: true,
   },
 ];
@@ -385,7 +408,7 @@ export default function Home() {
               style={{ transform: 'translateX(-50%)' }} 
             >
               
-              {/* LEFT: TREASURY (Sector 03) */}
+              {/* LEFT: TREASURY (Sector 02) */}
               <div className="w-screen h-full flex items-center justify-center overflow-y-auto">
                 <section id="treasury" className="section-container pt-0 w-full">
                   <Reveal className="w-full flex flex-col items-center text-center">
@@ -480,31 +503,46 @@ export default function Home() {
 
             {TIMELINE.map((item, i) => (
               <Reveal key={item.title} delay={i * 100}>
-                <div className="relative flex items-center justify-between w-full mb-12">
+                {/* --- ADDED 'group cursor-default' to trigger hover state across the entire row --- */}
+                <div className="relative flex items-center justify-between w-full mb-12 group cursor-default">
                   {item.side === 'right' ? (
                     <>
-                      <div className="w-5/12 text-right pr-8 bg-[#121822] pt-4 pb-4 rounded-xl">
+                      <div className="w-5/12 text-right pr-8 bg-[#121822] pt-4 pb-4 rounded-xl transition-colors duration-300 group-hover:bg-[#1a2233]">
                         <div className={`w-8/12 pl-8 text-left font-mono font-bold text-sm tracking-widest ${item.gold ? 'text-[var(--gold)]' : 'text-[#00E5FF]'}`}>
                           {item.date}
                         </div>
-                        <h3 className="font-display text-lg font-bold text-white">{item.title}</h3>
+                        {/* --- Title Underline on Hover --- */}
+                        <h3 className="font-display text-lg font-bold text-white inline-block relative after:absolute after:bottom-0 after:left-0 after:w-0 group-hover:after:w-full after:h-[2px] after:bg-[#00E5FF] after:transition-all after:duration-300">
+                          {item.title}
+                        </h3>
                         <p className="text-sm text-[var(--mist)] mt-2">{item.desc}</p>
                       </div>
-                      <span className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full animate-ping ${item.gold ? 'bg-[var(--gold)] shadow-[0_0_12px_var(--gold)]' : 'bg-[#00E5FF] shadow-[0_0_10px_#00E5FF]'}`} />
-                      <span className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full ${item.gold ? 'bg-[var(--gold)] shadow-[0_0_12px_var(--gold)]' : 'bg-[#00E5FF] shadow-[0_0_10px_#00E5FF]'}`} />
+                      
+                      {/* --- Bubble Lights up White on Hover --- */}
+                      <span className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full animate-ping transition-all duration-300 group-hover:!bg-white group-hover:!shadow-[0_0_20px_#ffffff] ${item.gold ? 'bg-[var(--gold)] shadow-[0_0_12px_var(--gold)]' : 'bg-[#00E5FF] shadow-[0_0_10px_#00E5FF]'}`} />
+                      <span className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full transition-all duration-300 group-hover:!bg-white group-hover:!shadow-[0_0_20px_#ffffff] ${item.gold ? 'bg-[var(--gold)] shadow-[0_0_12px_var(--gold)]' : 'bg-[#00E5FF] shadow-[0_0_10px_#00E5FF]'}`} />
+                      
                       <div className="w-5/12"></div>
                     </>
                   ) : (
                     <>
                       <div className="w-5/12 text-right pr-8"></div>
-                      <span className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full animate-ping ${item.gold ? 'bg-[var(--gold)] shadow-[0_0_12px_var(--gold)]' : 'bg-[#ffd700] shadow-[0_0_10px_white]'}`} />
-                      <span className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full ${item.gold ? 'bg-[var(--gold)] shadow-[0_0_12px_var(--gold)]' : 'bg-[#ffd700] shadow-[0_0_10px_white]'}`} />
-                      <div className="w-5/12 pl-8 text-left bg-[#121822] pt-4 pb-4 rounded-xl">
+                      
+                      {/* --- Bubble Lights up White on Hover --- */}
+                      <span className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full animate-ping transition-all duration-300 group-hover:!bg-white group-hover:!shadow-[0_0_20px_#ffffff] ${item.gold ? 'bg-[var(--gold)] shadow-[0_0_12px_var(--gold)]' : 'bg-[#00E5FF] shadow-[0_0_10px_#00E5FF]'}`} />
+                      <span className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full transition-all duration-300 group-hover:!bg-white group-hover:!shadow-[0_0_20px_#ffffff] ${item.gold ? 'bg-[var(--gold)] shadow-[0_0_12px_var(--gold)]' : 'bg-[#00E5FF] shadow-[0_0_10px_#00E5FF]'}`} />
+                      
+                      <div className="w-5/12 pl-8 text-left bg-[#121822] pt-4 pb-4 rounded-xl transition-colors duration-300 group-hover:bg-[#1a2233]">
                         <div className={`w-8/12 text-left pr-6 pb-4 font-mono font-bold text-sm tracking-widest ${item.gold ? 'text-[var(--gold)]' : 'text-[#00E5FF]'}`}>
                           {item.date}
                         </div>
                         {item.tag && <span className="badge-mono border-[#00E5FF]/50 bg-[#00E5FF] text-[#05080C] mb-2 inline-block">{item.tag}</span>}
-                        <h3 className="font-display text-lg font-bold text-white">{item.title}</h3>
+                        <div className="w-full">
+                           {/* --- Title Underline on Hover --- */}
+                          <h3 className="font-display text-lg font-bold text-white inline-block relative after:absolute after:bottom-0 after:left-0 after:w-0 group-hover:after:w-full after:h-[2px] after:bg-[#00E5FF] after:transition-all after:duration-300">
+                            {item.title}
+                          </h3>
+                        </div>
                         <p className="text-sm text-[var(--mist)] mt-2">{item.desc}</p>
                       </div>
                     </>
