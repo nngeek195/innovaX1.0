@@ -565,7 +565,6 @@ export default function Home() {
                   <Reveal className="w-full max-w-6xl">
                     <div className="partners-stage">
                       <div className="partners-carousel" style={{ '--carousel-angle': `${-activePartner * 90}deg` } as React.CSSProperties}>
-                        <div className="partners-cylinder" aria-hidden="true" />
                         {PARTNERS.map((partner, index) => {
                           return (
                           <div
