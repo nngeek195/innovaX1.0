@@ -46,10 +46,12 @@ body {
   ========================================= */
   .heading-glow {
     @apply text-3xl md:text-5xl font-extrabold tracking-widest uppercase text-white mb-12 flex gap-4 items-center;
+    @apply text-3xl md:text-5xl font-extrabold tracking-widest uppercase text-white mb-12 text-center leading-normal;
   }
   
   .heading-highlight {
     @apply text-[#00E5FF] drop-shadow-[0_0_8px_rgba(0,229,255,0.4)];
+    @apply text-[#00E5FF] drop-shadow-[0_0_8px_rgba(0,229,255,0.4)] inline-block py-1;
   }
 
   .heading-sub {
@@ -271,6 +273,112 @@ body {
     @apply mt-6 text-center;
     opacity: 0;
     animation: field-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) 1.3s forwards;
+  }
+
+  .partners-stage {
+    @apply relative w-full flex flex-col items-center;
+    min-height: 680px;
+  }
+
+  .partners-carousel {
+    @apply relative flex items-center justify-center;
+    width: min(90vw, 460px);
+    height: 430px;
+    perspective: 1100px;
+    transform-style: preserve-3d;
+  }
+
+  .partners-carousel > .partner-card {
+    @apply absolute left-1/2 top-1/2 flex items-center justify-center;
+    width: 250px;
+    height: 300px;
+    transform-style: preserve-3d;
+    transform: translate(-50%, -50%) rotateY(calc(var(--partner-angle) + var(--carousel-angle))) translateZ(175px);
+    backface-visibility: hidden;
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s ease, opacity 0.6s ease;
+    opacity: 0.6;
+    filter: saturate(0.65) brightness(0.7);
+  }
+
+  .partners-carousel > .partner-card.is-active {
+    opacity: 1;
+    filter: saturate(1) brightness(1) drop-shadow(0 18px 30px rgba(0, 229, 255, 0.25));
+  }
+
+  .partners-carousel > .partner-card .partner-badge-button {
+    @apply w-64 h-64;
+  }
+
+  .partners-carousel > .partner-card:not(.is-active) .partner-badge-button {
+    pointer-events: none;
+  }
+
+  .partner-card {
+    @apply flex items-center justify-center;
+    transform-style: preserve-3d;
+  }
+
+  .partner-badge-button {
+    @apply relative flex items-center justify-center w-72 h-72 md:w-80 md:h-80 cursor-pointer;
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), filter 0.45s ease;
+  }
+
+  .partner-badge-button:hover,
+  .partner-badge-button:focus-visible {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 24px rgba(0, 229, 255, 0.35));
+    outline: none;
+  }
+
+  .partner-badge {
+    @apply w-full h-full object-contain;
+  }
+
+  .partner-details {
+    @apply relative z-20 flex items-start gap-4 w-full max-w-2xl text-left border-t border-[#00E5FF]/25 pt-5;
+    animation: partner-detail-enter 0.45s ease both;
+  }
+
+  .partner-info {
+    @apply flex items-start gap-4 text-left w-full mt-2;
+  }
+
+  .partner-logo-frame {
+    @apply relative w-20 h-16 shrink-0 flex items-center justify-center rounded border border-white/10 bg-[var(--slate-raised)] overflow-hidden;
+  }
+
+  .partner-logo {
+    @apply max-w-full max-h-full object-contain;
+  }
+
+  .partner-logo-fallback {
+    @apply absolute font-mono text-xs tracking-widest text-[var(--mist)];
+  }
+
+  .partner-tier {
+    @apply text-[10px] font-mono tracking-[0.2em] uppercase text-[#00E5FF] mb-1;
+  }
+
+  @media (max-width: 640px) {
+    .partners-stage {
+      min-height: 600px;
+    }
+
+    .partners-carousel {
+      height: 390px;
+    }
+
+    .partners-carousel > .partner-card {
+      transform: translate(-50%, -50%) rotateY(calc(var(--partner-angle) + var(--carousel-angle))) translateZ(130px);
+    }
+
+    .partners-carousel > .partner-card .partner-badge-button {
+      @apply w-56 h-56;
+    }
+
+    .partner-logo-frame {
+      @apply w-16 h-14;
+    }
   }
 
   /* =========================================
@@ -569,4 +677,15 @@ body {
   60% { transform: translateX(2px); }
   75% { transform: translateX(-1px); }
   100% { transform: translateX(0); }
+}
+
+@keyframes partner-detail-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

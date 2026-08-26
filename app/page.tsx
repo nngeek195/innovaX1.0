@@ -97,16 +97,34 @@ const TIMELINE = [
   },
 ];
 
-const PARTNER_TIERS = [
+const PARTNERS = [
   {
-    tier: 'Platinum Partner',
-    price: 'LKR 75,000',
-    perks: 'Prime stage branding, a 10-minute speaking slot, and a seat on the judging panel.',
+    tier: 'Platinum',
+    badge: '/Platinum.png',
+    logo: '/sponsors/platinum-logo.png',
+    company: 'Platinum Sponsor Name',
+    description: 'Add two or three lines about the platinum sponsor, their work, and how they support innovation in the community.',
   },
   {
-    tier: 'Gold Partner',
-    price: 'LKR 50,000',
-    perks: 'Prominent branding, welcome-kit inclusion, and a 5-minute speaking slot.',
+    tier: 'Gold',
+    badge: '/gold.png',
+    logo: '/sponsors/gold-logo.png',
+    company: 'Gold Sponsor Name',
+    description: 'Add two or three lines about the gold sponsor, their work, and how they support the InnovaX community.',
+  },
+  {
+    tier: 'Silver',
+    badge: '/silver.png',
+    logo: '/sponsors/silver-logo.png',
+    company: 'Silver Sponsor Name',
+    description: 'Add two or three lines about the silver sponsor, their work, and their contribution to this competition.',
+  },
+  {
+    tier: 'Bronze',
+    badge: '/bronze.png',
+    logo: '/sponsors/bronze-logo.png',
+    company: 'Bronze Sponsor Name',
+    description: 'Add two or three lines about the bronze sponsor, their work, and the value they bring to the explorer community.',
   },
 ];
 
@@ -194,6 +212,7 @@ function GlassOverlay({ isShattered }: { isShattered: boolean }) {
 export default function Home() {
   const [activeSection, setActiveSection] = useState('gateway');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [activePartner, setActivePartner] = useState(0);
   const [isShattered, setIsShattered] = useState(false);
   
   const rootRef = useRef<HTMLElement>(null);
@@ -241,8 +260,13 @@ export default function Home() {
         
         let hProgress2 = -rect2.top / scrollDistance2;
         hProgress2 = Math.max(0, Math.min(1, hProgress2));
+
+        // Use the first half of this zone to complete the sponsor rotation.
+        const partnerProgress = Math.min(1, hProgress2 * 2);
+        setActivePartner(Math.min(PARTNERS.length - 1, Math.floor(partnerProgress * PARTNERS.length)));
         
-        horizontalTrackRef2.current.style.transform = `translateX(calc(-${hProgress2 * 50}%))`;
+        const faqProgress = Math.max(0, (hProgress2 - 0.5) * 2);
+        horizontalTrackRef2.current.style.transform = `translateX(calc(-${faqProgress * 50}%))`;
       }
 
       // 3. Video Scrubbing Logic (Constrained to Sections 2 through 5)
@@ -579,26 +603,40 @@ export default function Home() {
             </p>
           </Reveal>
 
-                  <Reveal className="glass-panel w-full max-w-4xl border-[#00E5FF]/20 border">
-                    <div className="badge-mono border-[#00E5FF] text-[#00E5FF] bg-[#00E5FF]/10 inline-block mb-8">
-                      Sponsor Packages
-                    </div>
-                    <div className="grid grid-cols-1 gap-6 text-left">
-                      {PARTNER_TIERS.map((p) => (
-                        <div key={p.tier} className="flex flex-col md:flex-row items-start md:items-center gap-6 p-4 rounded-xl hover:bg-white/5 transition">
-                          <div className="w-32 h-16 bg-[var(--slate-raised)] rounded flex items-center justify-center shrink-0 border border-white/10 font-mono text-xs text-[var(--mist)]">
-                            LOGO
+                  <Reveal className="w-full max-w-6xl">
+                    <div className="partners-stage">
+                      <div className="partners-carousel" style={{ '--carousel-angle': `${-activePartner * 90}deg` } as React.CSSProperties}>
+                        {PARTNERS.map((partner, index) => {
+                          return (
+                          <div
+                            key={partner.tier}
+                            className={`partner-card ${index === activePartner ? 'is-active' : ''}`}
+                            style={{ '--partner-angle': `${index * 90}deg`, zIndex: index === activePartner ? 10 : 1 } as React.CSSProperties}
+                          >
+                            <button type="button" className="partner-badge-button" onClick={() => setActivePartner(index)} aria-label={`${partner.tier} partner: ${partner.company}`}>
+                              <img src={partner.badge} alt={`${partner.tier} Partner`} className="partner-badge" />
+                            </button>
                           </div>
-                          <div>
-                            <h3 className="font-display text-xl font-bold text-white">{p.tier}</h3>
-                            <p className="text-sm text-[var(--mist)] mt-1">{p.price}. {p.perks}</p>
-                          </div>
+                          );
+                        })}
+                      </div>
+                      <div className="partner-details" aria-live="polite">
+                        <div className="partner-logo-frame">
+                          <img
+                            src={PARTNERS[activePartner].logo}
+                            alt={`${PARTNERS[activePartner].company} logo`}
+                            className="partner-logo"
+                            onError={(event) => { event.currentTarget.style.display = 'none'; }}
+                          />
+                          <span className="partner-logo-fallback" aria-hidden="true">{PARTNERS[activePartner].company.slice(0, 2).toUpperCase()}</span>
                         </div>
-                      ))}
+                        <div>
+                          <p className="partner-tier">{PARTNERS[activePartner].tier} Partner</p>
+                          <h3 className="font-display text-xl md:text-2xl font-bold text-white">{PARTNERS[activePartner].company}</h3>
+                          <p className="text-sm text-[var(--mist)] mt-2 leading-relaxed max-w-xl">{PARTNERS[activePartner].description}</p>
+                        </div>
+                      </div>
                     </div>
-                    <a href="mailto:ssomaweera@foc.sab.ac.lk?subject=InnovaX%20Partnership%20Enquiry" className="inline-block mt-8 text-xs font-mono tracking-widest uppercase text-[#00E5FF] hover:text-white transition">
-                      Become a Partner →
-                    </a>
                   </Reveal>
                 </section>
               </div>
