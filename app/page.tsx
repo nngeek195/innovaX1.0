@@ -2,6 +2,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { FaPlus } from "react-icons/fa";
+import { FaInstagram, FaLinkedinIn, FaYoutube, FaFacebookF} from "react-icons/fa6";
+import SmoothFollower from './components/SmoothFollower';
 
 /* ------------------------------------------------------------------ */
 /*  Demo content                                                      */
@@ -185,7 +187,7 @@ function GlassOverlay({ isShattered }: { isShattered: boolean }) {
 
 export default function Home() {
   const [activeSection, setActiveSection] = useState('gateway');
-  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isShattered, setIsShattered] = useState(false);
   
   const rootRef = useRef<HTMLElement>(null);
@@ -319,6 +321,8 @@ export default function Home() {
   }, []);
 
   return (
+    <>
+    <SmoothFollower />
     <main ref={rootRef} className="relative bg-transparent">
       {/* --- Base Backgrounds --- */}
       <div className="fixed inset-0 w-full h-full -z-20 bg-gradient-to-b from-[#0055FF]/12 via-[#05080C] to-[#05080C]" />
@@ -660,7 +664,7 @@ export default function Home() {
             <div className="absolute bottom-0 left-0 w-full h-[60vh] bg-gradient-to-t from-[#05080C] via-[#05080C]/95 to-transparent z-10" />
           </div>
 
-          <section id="register" className="flex flex-col items-center justify-center pt-48 pb-32 w-full text-center relative z-10">
+          <section id="register" className="flex flex-col items-center justify-center pt-16 pb-2 w-full text-center relative z-10">
             <Reveal className="flex flex-col items-center px-6">
               <SectorTag n="06" label="REGISTER" />
               <h2 className="font-display text-4xl md:text-6xl font-black tracking-widest uppercase text-white mb-8">
@@ -672,7 +676,7 @@ export default function Home() {
                 href="/register" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="btn-solid-cyan inline-block"
+                className="btn-solid-cyan inline-block mb-0"
               >
                 REGISTER NOW
               </a>
@@ -702,20 +706,26 @@ export default function Home() {
 
               <div className="flex justify-center gap-4 mb-16">
                 {[
-                  { name: 'LinkedIn', path: 'M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z M2 9h4v12H2z M4 2a2 2 0 11-2 2 2 2 0 012-2z' },
-                  { name: 'Facebook', path: 'M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z' },
-                  { name: 'YouTube', path: 'M22.54 6.42a2.78 2.78 0 00-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.42a2.78 2.78 0 00-1.94 2C1 8.14 1 12 1 12s0 3.86.46 5.58a2.78 2.78 0 001.94 2C5.12 20 12 20 12 20s6.88 0 8.6-.42a2.78 2.78 0 001.94-2C23 15.86 23 12 23 12s0-3.86-.46-5.58z M9.5 15.5v-7l6.5 3.5-6.5 3.5z' },
-                  { name: 'Instagram', path: 'M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37zm1.5-4.87h.01M6.5 6.5h11a3 3 0 013 3v11a3 3 0 01-3 3h-11a3 3 0 01-3-3v-11a3 3 0 013-3z' }
+                  { name: "LinkedIn", icon: <FaLinkedinIn />, href: "#" },
+                  { name: "Facebook", icon: <FaFacebookF />, href: "#" },
+                  { name: "YouTube", icon: <FaYoutube />, href: "#" },
+                  { name: "Instagram", icon: <FaInstagram />, href: "#" },
                 ].map((social) => (
-                  <a key={social.name} href="#" className="w-10 h-10 rounded-full border border-[#121822] flex items-center justify-center hover:border-[#00E5FF] hover:bg-[#00E5FF]/10 text-[var(--mist)] hover:text-[#00E5FF] transition-all duration-300" aria-label={social.name}>
-                    <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                      <path d={social.path}></path>
-                    </svg>
+                  <a
+                    key={social.name}
+                    href={social.href}
+                    className="w-10 h-10 rounded-full border border-[#FFFFFF] flex items-center justify-center
+                              hover:border-[#00E5FF] hover:bg-[#00E5FF]/10
+                              text-[var(--mist)] hover:text-[#00E5FF]
+                              hover:scale-110 hover:rotate-10"
+                    aria-label={social.name}
+                  >
+                    {social.icon}
                   </a>
                 ))}
               </div>
 
-              <div className="flex flex-col md:flex-row items-center justify-center gap-6 mb-12 w-full">
+              <div className="flex flex-col md:flex-row items-center justify-center gap-6 mb-8 w-full">
                 <div className="flex items-center gap-4">
                   <img src="https://github.com/nngeek195/mywork/blob/b1/Pasted%20image.png?raw=true" alt="InnovaX Small Logo" className="h-8 md:h-10 object-contain drop-shadow-[0_0_10px_rgba(0,229,255,0.3)]" />
                 </div>
@@ -764,5 +774,6 @@ export default function Home() {
         </nav>
       </div>
     </main>
+  </>
   );
 }
