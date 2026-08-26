@@ -592,7 +592,7 @@ export default function Home() {
                         {f.q}
                       </span>
                       <div
-                        className={`shrink-0 w-7 h-7 rounded-full border border-[#00E5FF] flex items-center justify-center text-[#00E5FF] `}
+                        className={`shrink-0 w-7 h-7 rounded-full border border-[#00E5FF]      flex items-center justify-center text-[#00E5FF] `}
                       >
                         <FaPlus className={`w-4 h-4 transition-transform duration-300 ${
                           open ? 'rotate-45' : ''
