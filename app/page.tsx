@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FaPlus } from "react-icons/fa";
 import { FaInstagram, FaLinkedinIn, FaYoutube, FaFacebookF} from "react-icons/fa6";
+import SmoothFollower from './components/SmoothFollower';
 
 /* ------------------------------------------------------------------ */
 /*  Demo content                                                      */
@@ -302,6 +303,8 @@ export default function Home() {
   }, []);
 
   return (
+    <>
+    <SmoothFollower />
     <main ref={rootRef} className="relative bg-transparent">
       {/* --- Base Backgrounds --- */}
       <div className="fixed inset-0 w-full h-full -z-20 bg-gradient-to-b from-[#0055FF]/12 via-[#05080C] to-[#05080C]" />
@@ -747,5 +750,6 @@ export default function Home() {
         </nav>
       </div>
     </main>
+  </>
   );
 }
