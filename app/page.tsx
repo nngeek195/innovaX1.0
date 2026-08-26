@@ -631,7 +631,7 @@ export default function Home() {
             <span className="font-mono text-[10px] tracking-[0.3em] text-[#00E5FF]">SYSTEM CHECKPOINT</span>
             <div className="h-px bg-gradient-to-r from-transparent via-[#00E5FF]/50 to-transparent flex-1" />
           </div>
-        </section>
+        
         </div>
 
         {/* =========================================
@@ -721,8 +721,6 @@ export default function Home() {
             </Reveal>
           </div>
         </div>
-
-      </div>
 
       {/* =========================================
           BOTTOM FIXED NAVIGATION
