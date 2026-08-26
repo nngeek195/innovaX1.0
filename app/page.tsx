@@ -347,15 +347,8 @@ export default function Home() {
                 Form a crew, chart your proposal, and pitch your way to the treasury.
               </p>
               <div className="flex flex-wrap gap-4 mb-12">
-                {/* Links down to the register section */}
-                <a href="/dashboard" className="btn-outline-cyan">
-                  SUBMIT PROPOSAL
-                </a>
-                
-                {/* Links to a future sign-in page */}
-                <a href="/login" className="btn-outline-cyan border-white/20 text-white hover:border-[#00E5FF] hover:text-[#05080C] bg-transparent hover:bg-[#00E5FF]">
-                  SIGN IN
-                </a>
+                <a href="/dashboard" className="btn-outline-cyan">SUBMIT PROPOSAL</a>
+                <a href="/login" className="btn-outline-cyan border-white/20 text-white hover:border-[#00E5FF] hover:text-[#05080C] bg-transparent hover:bg-[#00E5FF]">SIGN IN</a>
               </div>
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-lg border-t border-white/10 pt-8">
@@ -373,9 +366,6 @@ export default function Home() {
         </section>
       </div>
 
-      {/* =========================================
-          SECTIONS 2-7 SCROLL CONTENT WRAPPER
-      ========================================= */}
       <div ref={scrollContentRef} className={`relative z-30 pt-32 transition-all duration-[1200ms] ease-[cubic-bezier(0.25,1,0.5,1)] 
         ${isShattered ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-[0.95] translate-y-10 pointer-events-none'}`}>
         
@@ -531,10 +521,10 @@ export default function Home() {
               
               {/* LEFT: PARTNERS (Sector 04) */}
               <div className="w-screen h-full flex items-center justify-center overflow-y-auto">
-                <section id="partners" className="section-container pt-0 w-full text-center">
+                <section id="partners" className="section-container text-center">
                   <Reveal className="w-full flex flex-col items-center">
                     <SectorTag n="04" label="PARTNERS" />
-                    <h2 className="heading-glow justify-center">
+                    <h2 className="heading-glow justify-center mb-8">
                       THE <span className="heading-highlight">GUARDIANS</span>
                     </h2>
                     <p className="text-[var(--mist)] italic text-sm mb-10 text-center max-w-xl">
@@ -579,13 +569,13 @@ export default function Home() {
 
               {/* RIGHT: FAQ (Sector 05) */}
               <div className="w-screen h-full flex items-center justify-center overflow-y-auto">
-                <section id="faq" className="section-container pt-0 w-full">
+                <section id="faq" className="section-container">
                   <Reveal className="w-full flex flex-col items-center text-center">
                     <SectorTag n="05" label="FAQ" />
-                    <h2 className="heading-glow justify-center">
+                    <h2 className="heading-glow justify-center mb-2">
                       KNOWN <span className="heading-highlight">HAZARDS</span>
                     </h2>
-                    <p className="heading-sub text-center">
+                    <p className="heading-sub text-center mb-8">
                       Answers to what most explorers ask before setting off. Still stuck? Reach the crew below.
                     </p>
                   </Reveal>
@@ -601,10 +591,21 @@ export default function Home() {
                               aria-expanded={open}
                               className="w-full flex items-center justify-between gap-4 text-left px-6 py-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00E5FF]/60"
                             >
-                              <span className="font-display text-sm md:text-base font-semibold text-white">{f.q}</span>
-                              <span className={`shrink-0 w-6 h-6 rounded-full border border-[#00E5FF]/40 flex items-center justify-center text-[#00E5FF] transition-transform duration-300 ${open ? 'rotate-45' : ''}`}>+</span>
+                              <span className="font-display text-sm md:text-base font-semibold text-white">
+                                {f.q}
+                              </span>
+                              <div
+                                className={`shrink-0 w-7 h-7 rounded-full border border-[#00E5FF] flex items-center justify-center text-[#00E5FF]`}
+                              >
+                                <FaPlus className={`w-4 h-4 transition-transform duration-300 ${
+                                  open ? 'rotate-45' : ''
+                                }`} />
+                              </div>
                             </button>
-                            <div className="grid transition-all duration-300 ease-out" style={{ gridTemplateRows: open ? '1fr' : '0fr' }}>
+                            <div
+                              className="grid transition-all duration-300 ease-out"
+                              style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
+                            >
                               <div className="overflow-hidden">
                                 <p className="text-sm text-[var(--mist)] leading-relaxed px-6 pb-6">{f.a}</p>
                               </div>
@@ -629,51 +630,6 @@ export default function Home() {
             <div className="h-px bg-gradient-to-r from-transparent via-[#00E5FF]/50 to-transparent flex-1" />
             <span className="font-mono text-[10px] tracking-[0.3em] text-[#00E5FF]">SYSTEM CHECKPOINT</span>
             <div className="h-px bg-gradient-to-r from-transparent via-[#00E5FF]/50 to-transparent flex-1" />
-        <section id="faq" className="section-container">
-          <Reveal className="w-full flex flex-col items-center text-center">
-            <SectorTag n="05" label="FAQ" />
-            <h2 className="heading-glow justify-center mb-2">
-              KNOWN <span className="heading-highlight">HAZARDS</span>
-            </h2>
-            <p className="heading-sub text-center mb-8">
-              Answers to what most explorers ask before setting off. Still stuck? Reach the crew below.
-            </p>
-          </Reveal>
-
-          <div className="w-full max-w-3xl flex flex-col gap-3">
-            {FAQS.map((f, i) => {
-              const open = openFaq === i;
-              return (
-                <Reveal key={f.q} delay={i * 60}>
-                  <div className="glass-panel !p-0 overflow-hidden">
-                    <button
-                      onClick={() => setOpenFaq(open ? null : i)}
-                      aria-expanded={open}
-                      className="w-full flex items-center justify-between gap-4 text-left px-6 py-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00E5FF]/60"
-                    >
-                      <span className="font-display text-sm md:text-base font-semibold text-white">
-                        {f.q}
-                      </span>
-                      <div
-                        className={`shrink-0 w-7 h-7 rounded-full border border-[#00E5FF]      flex items-center justify-center text-[#00E5FF] `}
-                      >
-                        <FaPlus className={`w-4 h-4 transition-transform duration-300 ${
-                          open ? 'rotate-45' : ''
-                        }`} />
-                      </div>
-                    </button>
-                    <div
-                      className="grid transition-all duration-300 ease-out"
-                      style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
-                    >
-                      <div className="overflow-hidden">
-                        <p className="text-sm text-[var(--mist)] leading-relaxed px-6 pb-6">{f.a}</p>
-                      </div>
-                    </div>
-                  </div>
-                </Reveal>
-              );
-            })}
           </div>
         </section>
         </div>
