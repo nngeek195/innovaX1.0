@@ -454,6 +454,7 @@ export default function Home() {
             </div>
           </div>
         </div>
+        </div>
 
         {/* =========================================
             JOURNEY (Sector 03) - Vertical Scroll
@@ -530,6 +531,17 @@ export default function Home() {
                       &ldquo;These are the guardians whose strength carries every explorer this far.&rdquo;
                     </p>
                   </Reveal>
+                </section>
+        <section id="partners" className="section-container text-center">
+          <Reveal className="w-full flex flex-col items-center">
+            <SectorTag n="04" label="PARTNERS" />
+            <h2 className="heading-glow justify-center mb-8">
+              THE <span className="heading-highlight">GUARDIANS</span>
+            </h2>
+            <p className="text-[var(--mist)] italic text-sm mb-10 text-center max-w-xl">
+              &ldquo;These are the guardians whose strength carries every explorer this far.&rdquo;
+            </p>
+          </Reveal>
 
                   <Reveal className="glass-panel w-full max-w-4xl border-[#00E5FF]/20 border">
                     <div className="badge-mono border-[#00E5FF] text-[#00E5FF] bg-[#00E5FF]/10 inline-block mb-8">
@@ -619,6 +631,7 @@ export default function Home() {
             <span className="font-mono text-[10px] tracking-[0.3em] text-[#00E5FF]">SYSTEM CHECKPOINT</span>
             <div className="h-px bg-gradient-to-r from-transparent via-[#00E5FF]/50 to-transparent flex-1" />
           </div>
+        </section>
         </div>
 
         {/* =========================================
