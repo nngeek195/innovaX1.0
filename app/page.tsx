@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { FaPlus } from "react-icons/fa";
 
 /* ------------------------------------------------------------------ */
 /*  Demo content                                                      */
@@ -539,6 +540,16 @@ export default function Home() {
                       &ldquo;These are the guardians whose strength carries every explorer this far.&rdquo;
                     </p>
                   </Reveal>
+        <section id="partners" className="section-container text-center">
+          <Reveal className="w-full flex flex-col items-center">
+            <SectorTag n="04" label="PARTNERS" />
+            <h2 className="heading-glow justify-center mb-8">
+              THE <span className="heading-highlight">GUARDIANS</span>
+            </h2>
+            <p className="text-[var(--mist)] italic text-sm mb-10 text-center max-w-xl">
+              &ldquo;These are the guardians whose strength carries every explorer this far.&rdquo;
+            </p>
+          </Reveal>
 
                   <Reveal className="glass-panel w-full max-w-4xl border-[#00E5FF]/20 border">
                     <div className="badge-mono border-[#00E5FF] text-[#00E5FF] bg-[#00E5FF]/10 inline-block mb-8">
@@ -616,6 +627,51 @@ export default function Home() {
             <div className="h-px bg-gradient-to-r from-transparent via-[#00E5FF]/50 to-transparent flex-1" />
             <span className="font-mono text-[10px] tracking-[0.3em] text-[#00E5FF]">SYSTEM CHECKPOINT</span>
             <div className="h-px bg-gradient-to-r from-transparent via-[#00E5FF]/50 to-transparent flex-1" />
+        <section id="faq" className="section-container">
+          <Reveal className="w-full flex flex-col items-center text-center">
+            <SectorTag n="05" label="FAQ" />
+            <h2 className="heading-glow justify-center mb-2">
+              KNOWN <span className="heading-highlight">HAZARDS</span>
+            </h2>
+            <p className="heading-sub text-center mb-8">
+              Answers to what most explorers ask before setting off. Still stuck? Reach the crew below.
+            </p>
+          </Reveal>
+
+          <div className="w-full max-w-3xl flex flex-col gap-3">
+            {FAQS.map((f, i) => {
+              const open = openFaq === i;
+              return (
+                <Reveal key={f.q} delay={i * 60}>
+                  <div className="glass-panel !p-0 overflow-hidden">
+                    <button
+                      onClick={() => setOpenFaq(open ? null : i)}
+                      aria-expanded={open}
+                      className="w-full flex items-center justify-between gap-4 text-left px-6 py-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00E5FF]/60"
+                    >
+                      <span className="font-display text-sm md:text-base font-semibold text-white">
+                        {f.q}
+                      </span>
+                      <div
+                        className={`shrink-0 w-7 h-7 rounded-full border border-[#00E5FF]      flex items-center justify-center text-[#00E5FF] `}
+                      >
+                        <FaPlus className={`w-4 h-4 transition-transform duration-300 ${
+                          open ? 'rotate-45' : ''
+                        }`} />
+                      </div>
+                    </button>
+                    <div
+                      className="grid transition-all duration-300 ease-out"
+                      style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
+                    >
+                      <div className="overflow-hidden">
+                        <p className="text-sm text-[var(--mist)] leading-relaxed px-6 pb-6">{f.a}</p>
+                      </div>
+                    </div>
+                  </div>
+                </Reveal>
+              );
+            })}
           </div>
         </div>
 
