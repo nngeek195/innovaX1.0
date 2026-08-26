@@ -188,6 +188,7 @@ function GlassOverlay({ isShattered }: { isShattered: boolean }) {
 export default function Home() {
   const [activeSection, setActiveSection] = useState('gateway');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [activePartner, setActivePartner] = useState(0);
   const [isShattered, setIsShattered] = useState(false);
   
   const rootRef = useRef<HTMLElement>(null);
@@ -235,8 +236,13 @@ export default function Home() {
         
         let hProgress2 = -rect2.top / scrollDistance2;
         hProgress2 = Math.max(0, Math.min(1, hProgress2));
+
+        // Use the first half of this zone to complete the sponsor rotation.
+        const partnerProgress = Math.min(1, hProgress2 * 2);
+        setActivePartner(Math.min(PARTNERS.length - 1, Math.floor(partnerProgress * PARTNERS.length)));
         
-        horizontalTrackRef2.current.style.transform = `translateX(calc(-${hProgress2 * 50}%))`;
+        const faqProgress = Math.max(0, (hProgress2 - 0.5) * 2);
+        horizontalTrackRef2.current.style.transform = `translateX(calc(-${faqProgress * 50}%))`;
       }
 
       // 3. Video Scrubbing Logic (Constrained to Sections 2 through 5)
@@ -557,30 +563,39 @@ export default function Home() {
           </Reveal>
 
                   <Reveal className="w-full max-w-6xl">
-                    <div className="partners-grid">
-                      {PARTNERS.map((partner) => (
-                        <article key={partner.tier} className="partner-card">
-                          <button type="button" className="partner-badge-button" aria-label={`${partner.tier} partner: ${partner.company}`}>
-                            <img src={partner.badge} alt={`${partner.tier} Partner`} className="partner-badge" />
-                          </button>
-                          <div className="partner-info">
-                            <div className="partner-logo-frame">
-                              <img
-                                src={partner.logo}
-                                alt={`${partner.company} logo`}
-                                className="partner-logo"
-                                onError={(event) => { event.currentTarget.style.display = 'none'; }}
-                              />
-                              <span className="partner-logo-fallback" aria-hidden="true">{partner.company.slice(0, 2).toUpperCase()}</span>
-                            </div>
-                            <div>
-                              <p className="partner-tier">{partner.tier} Partner</p>
-                              <h3 className="font-display text-xl font-bold text-white">{partner.company}</h3>
-                              <p className="text-sm text-[var(--mist)] mt-2 leading-relaxed">{partner.description}</p>
-                            </div>
+                    <div className="partners-stage">
+                      <div className="partners-carousel" style={{ '--carousel-angle': `${-activePartner * 90}deg` } as React.CSSProperties}>
+                        <div className="partners-cylinder" aria-hidden="true" />
+                        {PARTNERS.map((partner, index) => {
+                          return (
+                          <div
+                            key={partner.tier}
+                            className={`partner-card ${index === activePartner ? 'is-active' : ''}`}
+                            style={{ '--partner-angle': `${index * 90}deg`, zIndex: index === activePartner ? 10 : 1 } as React.CSSProperties}
+                          >
+                            <button type="button" className="partner-badge-button" onClick={() => setActivePartner(index)} aria-label={`${partner.tier} partner: ${partner.company}`}>
+                              <img src={partner.badge} alt={`${partner.tier} Partner`} className="partner-badge" />
+                            </button>
                           </div>
-                        </article>
-                      ))}
+                          );
+                        })}
+                      </div>
+                      <div className="partner-details" aria-live="polite">
+                        <div className="partner-logo-frame">
+                          <img
+                            src={PARTNERS[activePartner].logo}
+                            alt={`${PARTNERS[activePartner].company} logo`}
+                            className="partner-logo"
+                            onError={(event) => { event.currentTarget.style.display = 'none'; }}
+                          />
+                          <span className="partner-logo-fallback" aria-hidden="true">{PARTNERS[activePartner].company.slice(0, 2).toUpperCase()}</span>
+                        </div>
+                        <div>
+                          <p className="partner-tier">{PARTNERS[activePartner].tier} Partner</p>
+                          <h3 className="font-display text-xl md:text-2xl font-bold text-white">{PARTNERS[activePartner].company}</h3>
+                          <p className="text-sm text-[var(--mist)] mt-2 leading-relaxed max-w-xl">{PARTNERS[activePartner].description}</p>
+                        </div>
+                      </div>
                     </div>
                   </Reveal>
                 </section>
