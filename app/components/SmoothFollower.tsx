@@ -1,76 +1,155 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react";
 
 export default function SmoothFollower() {
-  const mousePosition = useRef({ x: 0, y: 0 })
+  // Actual mouse position
+  const mousePosition = useRef({ x: 0, y: 0 });
 
-  const dotPosition = useRef({ x: 0, y: 0 })
-  const borderDotPosition = useRef({ x: 0, y: 0 })
+  // Smoothed positions
+  const dotPosition = useRef({ x: 0, y: 0 });
+  const borderDotPosition = useRef({ x: 0, y: 0 });
 
-  const [renderPos, setRenderPos] = useState({ dot: { x: 0, y: 0 }, border: { x: 0, y: 0 } })
-  const [isHovering, setIsHovering] = useState(false)
+  // Animation frame reference
+  const animationFrame = useRef<number | null>(null);
 
-  const DOT_SMOOTHNESS = 0.2
-  const BORDER_DOT_SMOOTHNESS = 0.1
+  // Rendered positions
+  const [renderPos, setRenderPos] = useState({
+    dot: { x: 0, y: 0 },
+    border: { x: 0, y: 0 },
+  });
+
+  // Hover state
+  const [isHovering, setIsHovering] = useState(false);
+
+  // Smoothness
+  const DOT_SMOOTHNESS = 0.2;
+  const BORDER_DOT_SMOOTHNESS = 0.1;
 
   useEffect(() => {
+    // ------------------------------------------
+    // Mouse movement
+    // ------------------------------------------
     const handleMouseMove = (e: MouseEvent) => {
-      mousePosition.current = { x: e.clientX, y: e.clientY }
-    }
+      mousePosition.current = {
+        x: e.clientX,
+        y: e.clientY,
+      };
+    };
 
-    const handleMouseEnter = () => setIsHovering(true)
-    const handleMouseLeave = () => setIsHovering(false)
+    // ------------------------------------------
+    // Hover detection
+    // ------------------------------------------
+    const handleMouseEnter = () => {
+      setIsHovering(true);
+    };
 
-    // Add event listeners
-    window.addEventListener("mousemove", handleMouseMove)
+    const handleMouseLeave = () => {
+      setIsHovering(false);
+    };
 
-    const interactiveElements = document.querySelectorAll("a, button, img, input, textarea, select")
+    window.addEventListener("mousemove", handleMouseMove);
+
+    // Elements that trigger the larger cursor
+    const interactiveElements = document.querySelectorAll(
+      "a, button, img, input, textarea, select"
+    );
+
     interactiveElements.forEach((element) => {
-      element.addEventListener("mouseenter", handleMouseEnter)
-      element.addEventListener("mouseleave", handleMouseLeave)
-    })
+      element.addEventListener("mouseenter", handleMouseEnter);
+      element.addEventListener("mouseleave", handleMouseLeave);
+    });
 
-    // Animation function for smooth movement
+    // ------------------------------------------
+    // Linear interpolation
+    // ------------------------------------------
+    const lerp = (
+      start: number,
+      end: number,
+      factor: number
+    ) => {
+      return start + (end - start) * factor;
+    };
+
+    // ------------------------------------------
+    // Animation
+    // ------------------------------------------
     const animate = () => {
-      const lerp = (start: number, end: number, factor: number) => {
-        return start + (end - start) * factor
-      }
+      // Inner dot
+      dotPosition.current.x = lerp(
+        dotPosition.current.x,
+        mousePosition.current.x,
+        DOT_SMOOTHNESS
+      );
 
-      dotPosition.current.x = lerp(dotPosition.current.x, mousePosition.current.x, DOT_SMOOTHNESS)
-      dotPosition.current.y = lerp(dotPosition.current.y, mousePosition.current.y, DOT_SMOOTHNESS)
+      dotPosition.current.y = lerp(
+        dotPosition.current.y,
+        mousePosition.current.y,
+        DOT_SMOOTHNESS
+      );
 
-      borderDotPosition.current.x = lerp(borderDotPosition.current.x, mousePosition.current.x, BORDER_DOT_SMOOTHNESS)
-      borderDotPosition.current.y = lerp(borderDotPosition.current.y, mousePosition.current.y, BORDER_DOT_SMOOTHNESS)
+      // Outer circle
+      borderDotPosition.current.x = lerp(
+        borderDotPosition.current.x,
+        mousePosition.current.x,
+        BORDER_DOT_SMOOTHNESS
+      );
 
+      borderDotPosition.current.y = lerp(
+        borderDotPosition.current.y,
+        mousePosition.current.y,
+        BORDER_DOT_SMOOTHNESS
+      );
+
+      // Update state
       setRenderPos({
-        dot: { x: dotPosition.current.x, y: dotPosition.current.y },
-        border: { x: borderDotPosition.current.x, y: borderDotPosition.current.y },
-      })
+        dot: {
+          x: dotPosition.current.x,
+          y: dotPosition.current.y,
+        },
+        border: {
+          x: borderDotPosition.current.x,
+          y: borderDotPosition.current.y,
+        },
+      });
 
-      requestAnimationFrame(animate)
-    }
+      // Continue animation
+      animationFrame.current = requestAnimationFrame(animate);
+    };
 
-    // Start animation loop
-    const animationId = requestAnimationFrame(animate)
+    // Start animation
+    animationFrame.current = requestAnimationFrame(animate);
 
-    // Clean up
+    // ------------------------------------------
+    // Cleanup
+    // ------------------------------------------
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove)
+      window.removeEventListener("mousemove", handleMouseMove);
 
       interactiveElements.forEach((element) => {
-        element.removeEventListener("mouseenter", handleMouseEnter)
-        element.removeEventListener("mouseleave", handleMouseLeave)
-      })
+        element.removeEventListener(
+          "mouseenter",
+          handleMouseEnter
+        );
 
-      cancelAnimationFrame(animationId)
-    }
-  }, [])
+        element.removeEventListener(
+          "mouseleave",
+          handleMouseLeave
+        );
+      });
 
-  if (typeof window === "undefined") return null
+      if (animationFrame.current !== null) {
+        cancelAnimationFrame(animationFrame.current);
+      }
+    };
+  }, []);
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-50">
+    <div className="pointer-events-none fixed inset-0 z-[9999]">
+      
+      {/* =========================================
+          INNER DOT
+      ========================================= */}
       <div
         className="absolute rounded-full bg-[#00E5FF]"
         style={{
@@ -82,6 +161,9 @@ export default function SmoothFollower() {
         }}
       />
 
+      {/* =========================================
+          OUTER CIRCLE
+      ========================================= */}
       <div
         className="absolute rounded-full border border-[#00E5FF]"
         style={{
@@ -90,9 +172,10 @@ export default function SmoothFollower() {
           transform: "translate(-50%, -50%)",
           left: `${renderPos.border.x}px`,
           top: `${renderPos.border.y}px`,
-          transition: "width 0.3s, height 0.3s",
+          transition: "width 0.3s ease, height 0.3s ease",
         }}
       />
+
     </div>
-  )
+  );
 }

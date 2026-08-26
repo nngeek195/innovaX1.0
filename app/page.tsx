@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { FaPlus } from "react-icons/fa";
 import { FaInstagram, FaLinkedinIn, FaYoutube, FaFacebookF} from "react-icons/fa6";
 import SmoothFollower from './components/SmoothFollower';
+import CSChapterLogo from '../public/CSChapterLogo.png'
 
 /* ------------------------------------------------------------------ */
 /*  Demo content                                                      */
@@ -706,10 +707,7 @@ export default function Home() {
                   <img src="https://github.com/nngeek195/mywork/blob/b1/Pasted%20image.png?raw=true" alt="InnovaX Small Logo" className="h-8 md:h-10 object-contain drop-shadow-[0_0_10px_rgba(0,229,255,0.3)]" />
                 </div>
                 <span className="hidden md:block w-px h-10 bg-white/20"></span>
-                <div className="text-center md:text-left">
-                  <p className="text-xs font-bold tracking-widest text-white uppercase mb-1">IEEE Computer Society</p>
-                  <p className="text-[10px] text-[var(--mist)] tracking-[0.2em] uppercase">Sabaragamuwa University of Sri Lanka</p>
-                </div>
+                <div><img src={CSChapterLogo.src} alt="IEEE Computer Society Chapter Logo" className="w-26 h-10" /></div>
               </div>
 
               <div className="text-[10px] text-[var(--mist)]/50 uppercase tracking-widest font-mono flex flex-wrap justify-center items-center gap-3">
