@@ -464,6 +464,7 @@ export default function Home() {
             </div>
           </div>
         </div>
+        </div>
 
         {/* =========================================
             JOURNEY (Sector 03) - Vertical Scroll
@@ -540,6 +541,7 @@ export default function Home() {
                       &ldquo;These are the guardians whose strength carries every explorer this far.&rdquo;
                     </p>
                   </Reveal>
+                </section>
         <section id="partners" className="section-container text-center">
           <Reveal className="w-full flex flex-col items-center">
             <SectorTag n="04" label="PARTNERS" />
@@ -673,6 +675,7 @@ export default function Home() {
               );
             })}
           </div>
+        </section>
         </div>
 
         {/* =========================================
