@@ -3,11 +3,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FaPlus } from "react-icons/fa";
 import { FaInstagram, FaLinkedinIn, FaYoutube, FaFacebookF} from "react-icons/fa6";
-import SmoothFollower from './components/SmoothFollower';
+import dynamic from 'next/dynamic';
 import CSChapterLogo from '../public/CSChapterLogo.png'
 import first from '../public/1st.png'
 import second from '../public/2nd.png'
 import third from '../public/3rd.png'
+
+const SmoothFollower = dynamic(() => import('./components/SmoothFollower'), { 
+  ssr: false 
+});
 
 /* ------------------------------------------------------------------ */
 /*  Demo content                                                      */
@@ -48,45 +52,86 @@ const TRACKS = [
   },
 ];
 
+// --- UPDATED TIMELINE ROADMAP ---
 const TIMELINE = [
   {
     date: 'AUGUST 25',
-    title: 'Registration Opens',
+    title: 'Registration Opening',
     desc: 'The gates open. Form your crew of 2–4 and claim your team slot before it fills.',
+    side: 'right',
+  },
+  {
+    date: 'SEPTEMBER 02',
+    title: 'Registration Deadline',
+    desc: 'The final call to secure your spot. Registrations officially close at midnight.',
+    side: 'left',
+  },
+  {
+    date: 'SEPTEMBER 06',
+    title: 'Technical Session 02',
+    desc: 'Join our expert speakers for a deep dive into building Agentic workflows and structuring your proposal.',
     side: 'right',
   },
   {
     date: 'SEPTEMBER 08',
     title: 'Proposal Submission',
-    desc: 'Submit your idea and technical plan. This single document decides who advances.',
+    desc: 'Submit your architecture and technical plan. This single document decides who advances to the next stage.',
     side: 'left',
     tag: 'Crucial Phase',
   },
   {
-    date: 'OCTOBER 10 — AM',
-    title: 'Final Round',
-    desc: 'The Top 10 teams pitch and demo their Agentic AI builds live to the judging panel.',
+    date: 'SEPTEMBER 22',
+    title: 'Idea Submission Deadline',
+    desc: 'Finalize and submit your refined model concepts for the upcoming prototype phase.',
     side: 'right',
   },
   {
-    date: 'OCTOBER 10 — PM',
-    title: 'Results & Closing',
-    desc: 'Winners are announced and the prize pool is awarded at the closing ceremony.',
+    date: 'OCTOBER 03',
+    title: 'Announce Top 10 Teams',
+    desc: 'The judging panel reveals the official InnovaX Finalists who will compete in the live showdown.',
     side: 'left',
+  },
+  {
+    date: 'OCTOBER 10',
+    title: 'Final Round',
+    desc: 'The Top 10 teams pitch and demo their Agentic AI builds live to the judging panel. Winners are announced!',
+    side: 'right',
     gold: true,
   },
 ];
 
-const PARTNER_TIERS = [
+const PARTNERS = [
   {
-    tier: 'Platinum Partner',
-    price: 'LKR 75,000',
-    perks: 'Prime stage branding, a 10-minute speaking slot, and a seat on the judging panel.',
+    tier: 'Platinum',
+    badge: '/Platinum.png',
+    logo: '/sponsors/wso2-vector-logo-2022.png',
+    logoBg: '#FFFFFF',
+    company: 'WSO2',
+    description: 'WSO2 is a global technology company that develops foundational platforms for enterprises to meet their agentic needs.',
   },
   {
-    tier: 'Gold Partner',
-    price: 'LKR 50,000',
-    perks: 'Prominent branding, welcome-kit inclusion, and a 5-minute speaking slot.',
+    tier: 'Gold',
+    badge: '/gold.png',
+    logo: '/sponsors/dialog.png',
+    logoBg: '#FFFFFF',
+    company: 'Dialog Axiata PLC',
+    description: 'Dialog Axiata Group (Dialog), a subsidiary of Axiata Group Berhad (Axiata), operates Sri Lanka\’s leading quad-play connectivity provider.',
+  },
+  {
+    tier: 'Silver',
+    badge: '/silver.png',
+    logo: '/sponsors/keels.png',
+    logoBg: '#72ff4f',
+    company: 'Keells',
+    description: 'Keells is one of Sri Lanka\'s largest supermarket chains with 132 stores located across the island.',
+  },
+  {
+    tier: 'Bronze',
+    badge: '/bronze.png',
+    logo: '/sponsors/commercial.png',
+    logoBg: '#FFFFFF',
+    company: 'Commercial Bank of Ceylon PLC',
+    description: 'Having set a benchmark in banking in Sri Lanka we have set standards, created an identity and forged an unsurpassable trend.',
   },
 ];
 
@@ -174,6 +219,8 @@ function GlassOverlay({ isShattered }: { isShattered: boolean }) {
 export default function Home() {
   const [activeSection, setActiveSection] = useState('gateway');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [activePartner, setActivePartner] = useState(0);
+  const [brokenPartnerLogos, setBrokenPartnerLogos] = useState<Record<string, boolean>>({});
   const [isShattered, setIsShattered] = useState(false);
   
   const rootRef = useRef<HTMLElement>(null);
@@ -187,6 +234,131 @@ export default function Home() {
   // Track 2: Partners & FAQ
   const horizontalContainerRef2 = useRef<HTMLDivElement>(null);
   const horizontalTrackRef2 = useRef<HTMLDivElement>(null);
+  const currentPartner = PARTNERS[activePartner];
+  const currentLogoBroken = Boolean(brokenPartnerLogos[currentPartner.logo]);
+
+
+  // --- CYBER CIRCUIT CANVAS COMPONENT ---
+function CircuitBackground() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    
+    // Match parent size
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    const GRID_SIZE = 20;
+    const WIDTH = Math.floor(canvas.width / GRID_SIZE);
+    const HEIGHT = Math.floor(canvas.height / GRID_SIZE);
+
+    // Initialize Empty World
+    let WORLD = Array.from({ length: WIDTH }, () => Array(HEIGHT).fill(-1));
+    let WORLD_LINK: { a: number[]; b: number[]; c: number }[] = [];
+
+    // Seed the initial node in the center
+    WORLD[Math.floor(WIDTH / 2)][Math.floor(HEIGHT / 2)] = 0;
+
+    const animate = () => {
+      let score = 0;
+      let map = [];
+      for (let x = 0; x < WIDTH; x++) {
+        for (let y = 0; y < HEIGHT; y++) {
+          if (WORLD[x][y] !== -1) {
+            score++;
+            map.push([x, y]);
+          }
+        }
+      }
+
+      // Calculate how many nodes to sprout this frame
+      let stamina = Math.floor(score / 15) + 1;
+      while (map.length > 0 && stamina > 0) {
+        popTeam(0, map);
+        stamina--;
+      }
+    };
+
+    const popTeam = (team: number, map: number[][]) => {
+      const cell = map[Math.floor(Math.random() * map.length)];
+      const x = cell[0];
+      const y = cell[1];
+      const potential = [];
+
+      // Check valid neighbors
+      if (x > 0 && WORLD[x - 1][y] !== team) potential.push([x - 1, y]);
+      if (x < WIDTH - 1 && WORLD[x + 1][y] !== team) potential.push([x + 1, y]);
+      if (y > 0 && WORLD[x][y - 1] !== team) potential.push([x, y - 1]);
+      if (y < HEIGHT - 1 && WORLD[x][y + 1] !== team) potential.push([x, y + 1]);
+
+      if (potential.length) {
+        const p = potential[Math.floor(Math.random() * potential.length)];
+        WORLD[p[0]][p[1]] = team;
+        WORLD_LINK.push({ a: [x, y], b: [p[0], p[1]], c: team });
+      }
+    };
+
+    const render = () => {
+      // Clear frame
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const dx = Math.floor((canvas.width - WIDTH * GRID_SIZE) / 2);
+      const dy = Math.floor((canvas.height - HEIGHT * GRID_SIZE) / 2);
+
+      // Cyan color with opacity for the nodes
+      ctx.fillStyle = 'rgba(0, 229, 255, 0.4)';
+      for (let x = 0; x < WIDTH; x++) {
+        for (let y = 0; y < HEIGHT; y++) {
+          if (WORLD[x][y] !== -1) {
+            ctx.beginPath();
+            ctx.arc(x * GRID_SIZE + dx, y * GRID_SIZE + dy, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+
+      // Draw the connecting circuit lines
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = 'rgba(0, 229, 255, 0.3)';
+      for (let i = 0; i < WORLD_LINK.length; i++) {
+        const link = WORLD_LINK[i];
+        if (WORLD[link.a[0]][link.a[1]] !== WORLD[link.b[0]][link.b[1]] || WORLD[link.a[0]][link.a[1]] !== link.c) {
+          WORLD_LINK.splice(i--, 1);
+          continue;
+        }
+        ctx.beginPath();
+        const ddx = link.a[0] - link.b[0];
+        const ddy = link.a[1] - link.b[1];
+        ctx.moveTo(link.a[0] * GRID_SIZE + dx - ddx * 5, link.a[1] * GRID_SIZE + dy - ddy * 5);
+        ctx.lineTo(link.b[0] * GRID_SIZE + dx + ddx * 5, link.b[1] * GRID_SIZE + dy + ddy * 5);
+        ctx.stroke();
+      }
+    };
+
+    const loop = () => {
+      animate();
+      render();
+      animationFrameId = requestAnimationFrame(loop);
+    };
+
+    loop();
+
+    // Cleanup on unmount
+    return () => cancelAnimationFrame(animationFrameId);
+  }, []);
+
+  return (
+    <canvas 
+      ref={canvasRef} 
+      className="absolute inset-0 w-full h-full z-0 opacity-60 mix-blend-screen pointer-events-none" 
+    />
+  );
+}
 
   // ==========================================
   // UNIFIED SCROLL LOGIC
@@ -221,8 +393,13 @@ export default function Home() {
         
         let hProgress2 = -rect2.top / scrollDistance2;
         hProgress2 = Math.max(0, Math.min(1, hProgress2));
+
+        // Use the first half of this zone to complete the sponsor rotation.
+        const partnerProgress = Math.min(1, hProgress2 * 2);
+        setActivePartner(Math.min(PARTNERS.length - 1, Math.floor(partnerProgress * PARTNERS.length)));
         
-        horizontalTrackRef2.current.style.transform = `translateX(calc(-${hProgress2 * 50}%))`;
+        const faqProgress = Math.max(0, (hProgress2 - 0.5) * 2);
+        horizontalTrackRef2.current.style.transform = `translateX(calc(-${faqProgress * 50}%))`;
       }
 
       // 3. Video Scrubbing Logic (Constrained to Sections 2 through 5)
@@ -388,7 +565,7 @@ export default function Home() {
               style={{ transform: 'translateX(-50%)' }} 
             >
               
-              {/* LEFT: TREASURY (Sector 03) */}
+              {/* LEFT: TREASURY (Sector 02) */}
               <div className="w-screen h-full flex items-center justify-center overflow-y-auto">
                 <section id="treasury" className="section-container pt-0 w-full">
                   <Reveal className="w-full flex flex-col items-center text-center">
@@ -467,31 +644,117 @@ export default function Home() {
 
               {/* RIGHT: CHAPTERS (Sector 01) */}
               <div className="w-screen h-full flex items-center justify-center overflow-y-auto">
-                <section id="chapters" className="section-container pt-0 w-full">
-                  <Reveal className="w-full flex flex-col items-center text-center">
-                    <SectorTag n="01" label="CHAPTERS" />
-                    <h2 className="heading-glow justify-center">
-                      WHO&apos;S ON THIS <span className="heading-highlight">EXPEDITION</span>
-                    </h2>
-                    <p className="heading-sub text-center mb-10">
-                      InnovaX is run by student volunteers of the IEEE Computer Society Chapter at Sabaragamuwa
+              <section id="chapters" className="section-container pt-0 w-full relative z-20">
+  <Reveal className="w-full flex flex-col items-center text-center mb-10">
+    <SectorTag n="01" label="CHAPTERS" />
+    <h2 className="heading-glow justify-center">
+      WHO&apos;S ON THIS <span className="heading-highlight">EXPEDITION</span>
+    </h2>
+    <p className="heading-sub text-center">
+      InnovaX is run by student volunteers of the IEEE Computer Society Chapter at Sabaragamuwa
                       University of Sri Lanka. Teams of 2 – 4 undergraduates pick one track below and spend six
                       weeks turning an idea into a working Agentic AI proposal.
-                    </p>
-                  </Reveal>
+    </p>
+  </Reveal>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
-                    {TRACKS.map((t, i) => (
-                      <Reveal key={t.code} delay={i * 120}>
-                        <div className="glass-panel h-full text-left flex flex-col hover:scale-105">
-                          <span className="font-mono text-xs text-[#00E5FF]/70 tracking-widest mb-4">{t.code}</span>
-                          <h3 className="font-display text-lg font-semibold text-white mb-3">{t.title}</h3>
-                          <p className="text-sm text-[var(--mist)] leading-relaxed">{t.desc}</p>
-                        </div>
-                      </Reveal>
-                    ))}
-                  </div>
-                </section>
+  <Reveal className="w-full flex justify-center h-[500px] mt-8 perspective-[70em]">
+    <div className="cyber-book relative h-[80%] max-h-[450px] min-h-[300px] w-full max-w-[800px] mx-auto border-2 border-[#00E5FF]/30 rounded-lg shadow-[0_0_80px_rgba(0,229,255,0.15)] transform-style-3d transition-shadow duration-500 hover:shadow-[0_0_120px_rgba(0,229,255,0.4)]">
+      
+      {/* =========================================
+          STATIC LEFT PAGE (Visible when book is closed)
+      ========================================= */}
+      <div className="absolute top-0 left-0 w-1/2 h-full z-0 flex flex-col items-center justify-center p-6 border-r border-[#00E5FF]/10 overflow-hidden">
+        <a href="#" className="flex flex-col items-center group/dl cursor-pointer z-10 w-full">
+          <div className="w-20 h-20 rounded-full border border-[#00E5FF]/50 flex items-center justify-center bg-[#00E5FF]/10 mb-6 group-hover/dl:bg-[#00E5FF]/30 transition-all duration-300 shadow-[0_0_20px_rgba(0,229,255,0.2)] group-hover/dl:shadow-[0_0_40px_rgba(0,229,255,0.6)] group-hover/dl:scale-110">
+            {/* Bouncing SVG Icon */}
+            <svg className="w-10 h-10 text-[#00E5FF] animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+          </div>
+          <span className="font-display text-white text-base md:text-lg tracking-widest text-center relative after:absolute after:-bottom-2 after:left-1/2 after:-translate-x-1/2 after:h-[2px] after:w-0 group-hover/dl:after:w-full after:bg-[#00E5FF] after:transition-all after:duration-300">
+            DOWNLOAD<br/>DELEGATE BOOK
+          </span>
+        </a>
+      </div>
+
+      {/* =========================================
+          PAGE 1: Cover (Right Side) & Track 1
+      ========================================= */}
+      <div className="cyber-page z-[3]" onClick={(e) => e.currentTarget.classList.toggle('flipped')}>
+        
+        {/* SIDE 1: The Cover */}
+        <div className="cyber-side side-1 flex flex-col items-center justify-center text-center overflow-hidden group">
+          <CircuitBackground />
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="w-16 h-16 border border-[#00E5FF]/40 rounded-full flex items-center justify-center mb-4 shadow-[0_0_15px_rgba(0,229,255,0.2)] bg-[#05080C]/50 backdrop-blur-sm transition-transform group-hover:scale-110">
+              <span className="font-mono text-xs text-[#00E5FF] tracking-widest">INIT</span>
+            </div>
+            <h3 className="font-display text-3xl font-bold text-white tracking-widest mb-2 shadow-black drop-shadow-md relative inline-block after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 group-hover:after:w-full after:bg-[#00E5FF] after:transition-all after:duration-500">
+              EXPEDITION
+            </h3>
+            <p className="text-[var(--mist)] text-sm font-mono tracking-[0.3em] drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] mt-2">MANIFESTO</p>
+            <div className="mt-12 badge-mono border-[#00E5FF]/40 text-[#00E5FF] bg-[#00E5FF]/20 backdrop-blur-md cursor-pointer animate-pulse">CLICK TO OPEN</div>
+          </div>
+        </div>
+        
+        {/* SIDE 2: Track 1 (Visible when flipped to the left) */}
+        <div className="cyber-side side-2 flex flex-col justify-center group">
+          <span className="font-mono text-xs text-[#00E5FF] bg-[#00E5FF]/10 px-2 py-1 rounded inline-block w-max mb-4">{TRACKS[0].code}</span>
+          <div className="w-max max-w-full mb-4">
+            <h3 className="font-display text-2xl font-bold text-white relative inline-block after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 group-hover:after:w-full after:bg-[#00E5FF] after:transition-all after:duration-500">{TRACKS[0].title}</h3>
+          </div>
+          <p className="text-base text-[var(--mist)] leading-relaxed">{TRACKS[0].desc}</p>
+        </div>
+      </div>
+
+      {/* =========================================
+          PAGE 2: Track 2 & Track 3
+      ========================================= */}
+      <div className="cyber-page z-[2]" onClick={(e) => e.currentTarget.classList.toggle('flipped')}>
+        
+        {/* SIDE 1: Track 2 (Visible on right when Page 1 flips) */}
+        <div className="cyber-side side-1 flex flex-col justify-center group">
+          <span className="font-mono text-xs text-[#00E5FF] bg-[#00E5FF]/10 px-2 py-1 rounded inline-block w-max mb-4">{TRACKS[1].code}</span>
+          <div className="w-max max-w-full mb-4">
+            <h3 className="font-display text-2xl font-bold text-white relative inline-block after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 group-hover:after:w-full after:bg-[#00E5FF] after:transition-all after:duration-500">{TRACKS[1].title}</h3>
+          </div>
+          <p className="text-base text-[var(--mist)] leading-relaxed">{TRACKS[1].desc}</p>
+        </div>
+        
+        {/* SIDE 2: Track 3 (Visible on left when Page 2 flips) */}
+        <div className="cyber-side side-2 flex flex-col justify-center group">
+          <span className="font-mono text-xs text-[#00E5FF] bg-[#00E5FF]/10 px-2 py-1 rounded inline-block w-max mb-4">{TRACKS[2].code}</span>
+          <div className="w-max max-w-full mb-4">
+            <h3 className="font-display text-2xl font-bold text-white relative inline-block after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 group-hover:after:w-full after:bg-[#00E5FF] after:transition-all after:duration-500">{TRACKS[2].title}</h3>
+          </div>
+          <p className="text-base text-[var(--mist)] leading-relaxed">{TRACKS[2].desc}</p>
+        </div>
+      </div>
+
+      {/* =========================================
+          PAGE 3: Outro
+      ========================================= */}
+      <div className="cyber-page z-[1]" onClick={(e) => e.currentTarget.classList.toggle('flipped')}>
+        
+        {/* SIDE 1: End / Choose Path (Visible on right when Page 2 flips) */}
+        <div className="cyber-side side-1 flex flex-col items-center justify-center text-center group">
+           <div className="w-max max-w-full mb-4">
+             <h3 className="font-display text-xl font-bold text-white relative inline-block after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 group-hover:after:w-full after:bg-[#00E5FF] after:transition-all after:duration-500">
+               CHOOSE YOUR PATH
+             </h3>
+           </div>
+           <p className="text-sm text-[var(--mist)] max-w-[80%]">Select one track and spend six weeks turning your idea into a working Agentic AI proposal.</p>
+        </div>
+        
+        {/* SIDE 2: System End (Blank back page) */}
+        <div className="cyber-side side-2 flex items-center justify-center">
+           <p className="font-mono text-xs text-[var(--mist)]/40 tracking-[0.5em]">SYSTEM_END</p>
+        </div>
+      </div>
+
+    </div>
+  </Reveal>
+</section>
               </div>
 
             </div>
@@ -518,31 +781,46 @@ export default function Home() {
 
             {TIMELINE.map((item, i) => (
               <Reveal key={item.title} delay={i * 100}>
-                <div className="relative flex items-center justify-between w-full mb-12">
+                {/* --- ADDED 'group cursor-default' to trigger hover state across the entire row --- */}
+                <div className="relative flex items-center justify-between w-full mb-12 group cursor-default">
                   {item.side === 'right' ? (
                     <>
-                      <div className="w-5/12 text-right pr-8 bg-[#121822] pt-4 pb-4 rounded-xl">
+                      <div className="w-5/12 text-right pr-8 bg-[#121822] pt-4 pb-4 rounded-xl transition-colors duration-300 group-hover:bg-[#1a2233]">
                         <div className={`w-8/12 pl-8 text-left font-mono font-bold text-sm tracking-widest ${item.gold ? 'text-[var(--gold)]' : 'text-[#00E5FF]'}`}>
                           {item.date}
                         </div>
-                        <h3 className="font-display text-lg font-bold text-white">{item.title}</h3>
+                        {/* --- Title Underline on Hover --- */}
+                        <h3 className="font-display text-lg font-bold text-white inline-block relative after:absolute after:bottom-0 after:left-0 after:w-0 group-hover:after:w-full after:h-[2px] after:bg-[#00E5FF] after:transition-all after:duration-300">
+                          {item.title}
+                        </h3>
                         <p className="text-sm text-[var(--mist)] mt-2">{item.desc}</p>
                       </div>
-                      <span className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full animate-ping ${item.gold ? 'bg-[var(--gold)] shadow-[0_0_12px_var(--gold)]' : 'bg-[#00E5FF] shadow-[0_0_10px_#00E5FF]'}`} />
-                      <span className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full ${item.gold ? 'bg-[var(--gold)] shadow-[0_0_12px_var(--gold)]' : 'bg-[#00E5FF] shadow-[0_0_10px_#00E5FF]'}`} />
+                      
+                      {/* --- Bubble Lights up White on Hover --- */}
+                      <span className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full animate-ping transition-all duration-300 group-hover:!bg-white group-hover:!shadow-[0_0_20px_#ffffff] ${item.gold ? 'bg-[var(--gold)] shadow-[0_0_12px_var(--gold)]' : 'bg-[#00E5FF] shadow-[0_0_10px_#00E5FF]'}`} />
+                      <span className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full transition-all duration-300 group-hover:!bg-white group-hover:!shadow-[0_0_20px_#ffffff] ${item.gold ? 'bg-[var(--gold)] shadow-[0_0_12px_var(--gold)]' : 'bg-[#00E5FF] shadow-[0_0_10px_#00E5FF]'}`} />
+                      
                       <div className="w-5/12"></div>
                     </>
                   ) : (
                     <>
                       <div className="w-5/12 text-right pr-8"></div>
-                      <span className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full animate-ping ${item.gold ? 'bg-[var(--gold)] shadow-[0_0_12px_var(--gold)]' : 'bg-[#ffd700] shadow-[0_0_10px_white]'}`} />
-                      <span className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full ${item.gold ? 'bg-[var(--gold)] shadow-[0_0_12px_var(--gold)]' : 'bg-[#ffd700] shadow-[0_0_10px_white]'}`} />
-                      <div className="w-5/12 pl-8 text-left bg-[#121822] pt-4 pb-4 rounded-xl">
+                      
+                      {/* --- Bubble Lights up White on Hover --- */}
+                      <span className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full animate-ping transition-all duration-300 group-hover:!bg-white group-hover:!shadow-[0_0_20px_#ffffff] ${item.gold ? 'bg-[var(--gold)] shadow-[0_0_12px_var(--gold)]' : 'bg-[#00E5FF] shadow-[0_0_10px_#00E5FF]'}`} />
+                      <span className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full transition-all duration-300 group-hover:!bg-white group-hover:!shadow-[0_0_20px_#ffffff] ${item.gold ? 'bg-[var(--gold)] shadow-[0_0_12px_var(--gold)]' : 'bg-[#00E5FF] shadow-[0_0_10px_#00E5FF]'}`} />
+                      
+                      <div className="w-5/12 pl-8 text-left bg-[#121822] pt-4 pb-4 rounded-xl transition-colors duration-300 group-hover:bg-[#1a2233]">
                         <div className={`w-8/12 text-left pr-6 pb-4 font-mono font-bold text-sm tracking-widest ${item.gold ? 'text-[var(--gold)]' : 'text-[#00E5FF]'}`}>
                           {item.date}
                         </div>
                         {item.tag && <span className="badge-mono border-[#00E5FF]/50 bg-[#00E5FF] text-[#05080C] mb-2 inline-block">{item.tag}</span>}
-                        <h3 className="font-display text-lg font-bold text-white">{item.title}</h3>
+                        <div className="w-full">
+                           {/* --- Title Underline on Hover --- */}
+                          <h3 className="font-display text-lg font-bold text-white inline-block relative after:absolute after:bottom-0 after:left-0 after:w-0 group-hover:after:w-full after:h-[2px] after:bg-[#00E5FF] after:transition-all after:duration-300">
+                            {item.title}
+                          </h3>
+                        </div>
                         <p className="text-sm text-[var(--mist)] mt-2">{item.desc}</p>
                       </div>
                     </>
@@ -565,7 +843,7 @@ export default function Home() {
             >
               
               {/* LEFT: PARTNERS (Sector 04) */}
-                <div className="w-screen h-full flex items-center justify-center overflow-y-auto">
+<div className="w-screen h-full flex items-center justify-center overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
   
  
         <section id="partners" className="section-container text-center">
@@ -579,13 +857,57 @@ export default function Home() {
             </p>
           </Reveal>
 
-                  <Reveal className="glass-panel w-full max-w-4xl border-[#00E5FF]/20 border">
-                    <div className="badge-mono border-[#00E5FF] text-[#00E5FF] bg-[#00E5FF]/10 inline-block mb-8">
-                      Sponsor Packages
-                    </div>
-                    <div>
-                      <div>
-
+                  <Reveal className="w-full max-w-6xl">
+                    <div className="partners-stage">
+                      <div className="partners-carousel" style={{ '--carousel-angle': `${-activePartner * 90}deg` } as React.CSSProperties}>
+                        {PARTNERS.map((partner, index) => {
+                          return (
+                          <div
+                            key={partner.tier}
+                            className={`partner-card ${index === activePartner ? 'is-active' : ''}`}
+                            style={{ '--partner-angle': `${index * 90}deg`, zIndex: index === activePartner ? 10 : 1 } as React.CSSProperties}
+                          >
+                            <button type="button" className="partner-badge-button" onClick={() => setActivePartner(index)} aria-label={`${partner.tier} partner: ${partner.company}`}>
+                              <img src={partner.badge} alt={`${partner.tier} Partner`} className="partner-badge" />
+                            </button>
+                          </div>
+                          );
+                        })}
+                      </div>
+                      <div className="partner-details" aria-live="polite">
+                        <div className="partner-logo-frame" style={{ backgroundColor: currentPartner.logoBg }}>
+                          {!currentLogoBroken && (
+                            <img
+                              key={currentPartner.logo}
+                              src={currentPartner.logo}
+                              alt={`${currentPartner.company} logo`}
+                              className="partner-logo"
+                              loading="eager"
+                              decoding="async"
+                              onLoad={() => {
+                                setBrokenPartnerLogos((prev) => {
+                                  if (!prev[currentPartner.logo]) {
+                                    return prev;
+                                  }
+                                  const next = { ...prev };
+                                  delete next[currentPartner.logo];
+                                  return next;
+                                });
+                              }}
+                              onError={() => {
+                                setBrokenPartnerLogos((prev) => ({ ...prev, [currentPartner.logo]: true }));
+                              }}
+                            />
+                          )}
+                          {currentLogoBroken && (
+                            <span className="partner-logo-fallback" aria-hidden="true">{currentPartner.company.slice(0, 2).toUpperCase()}</span>
+                          )}
+                        </div>
+                        <div>
+                          <p className="partner-tier">{currentPartner.tier} Partner</p>
+                          <h3 className="partner-company font-display text-xl md:text-2xl font-bold">{currentPartner.company}</h3>
+                          <p className="text-sm text-[var(--mist)] mt-2 leading-relaxed max-w-xl">{currentPartner.description}</p>
+                        </div>
                       </div>
                     </div>
                   </Reveal>
@@ -593,7 +915,7 @@ export default function Home() {
               </div>
 
               {/* RIGHT: FAQ (Sector 05) */}
-              <div className="w-screen h-full flex items-center justify-center overflow-y-auto">
+<div className="w-screen h-full flex items-center justify-center overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 <section id="faq" className="section-container">
                   <Reveal className="w-full flex flex-col items-center text-center">
                     <SectorTag n="05" label="FAQ" />

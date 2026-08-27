@@ -7,10 +7,6 @@ import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import Link from 'next/link';
 
-/* ------------------------------------------------------------------ */
-/*  Main Login Component                                               */
-/* ------------------------------------------------------------------ */
-
 export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -18,9 +14,9 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [activeField, setActiveField] = useState<'idle' | 'email' | 'password'>('idle');
+  const [focusedField, setFocusedField] = useState<'email' | 'password' | null>(null);
 
-  // Mount animation
+  // Mount animation for the UI
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 100);
     return () => clearTimeout(t);
@@ -32,32 +28,43 @@ export default function Login() {
     setError('');
 
     try {
+      console.log("--- LOGIN INITIATED ---");
       // 1. Authenticate with Firebase
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+      
+      console.log("Authenticated User ID:", user.uid);
+
       // Set a session cookie valid for 1 day
       document.cookie = `innovax_session=${user.uid}; path=/; max-age=86400; SameSite=Strict; Secure`;
 
       // 2. Security Check: Is this user an Admin?
+      console.log("Checking Admin database...");
       const adminDoc = await getDoc(doc(db, "admins", user.uid));
       if (adminDoc.exists()) {
+        console.log("Access Granted: Admin");
         router.push('/admin');
         return; // Stop execution here so they route cleanly to admin
       }
 
       // 3. Security Check: Is this user a valid registered team/individual?
+      console.log("Checking Registrations database...");
       const userDoc = await getDoc(doc(db, "registrations", user.uid));
       if (userDoc.exists()) {
+        console.log("Access Granted: User Dashboard");
         router.push('/dashboard');
         return; // Stop execution here so they route cleanly to dashboard
       }
 
       // 4. Rejection: They authenticated, but have no database records.
+      console.warn("Access Denied: No database records found for this UID.");
       await signOut(auth);
       setError("Unauthorized. No InnovaX registration found for this account.");
 
     } catch (err: any) {
-      setError('Invalid credentials or account does not exist.');
+      console.error("LOGIN FAILED!", err);
+      // We will fall back to your preferred generic message, or print the Firebase message if helpful
+      setError("Invalid credentials or account does not exist.");
     } finally {
       setLoading(false);
     }
@@ -87,33 +94,17 @@ export default function Login() {
       {/* ===== MAIN CONTENT ===== */}
       <div className="login-content">
         
-        {/* --- LEFT: Logo Panel --- */}
-        <div className={`login-owl-panel ${mounted ? 'panel-visible' : ''} flex flex-col justify-center items-center`}>
-          <div className="flex flex-col items-center justify-center w-full flex-1">
-            <div className="relative group">
-              {/* Background glowing rings for the logo */}
-              <div className="absolute inset-0 bg-[#00E5FF]/15 blur-[80px] rounded-[100%] scale-[1.2] group-hover:scale-[1.4] transition-transform duration-700 pointer-events-none" />
-              
-              <img 
-                src="/innovax-logo.png" 
-                alt="InnovaX 1.0 Logo" 
-                className="w-72 md:w-96 h-auto object-contain relative z-10 drop-shadow-[0_0_20px_rgba(0,229,255,0.6)] animate-pulse"
-                style={{ animationDuration: '4s' }}
-              />
+        {/* --- LEFT: Branding Panel --- */}
+        <div className={`login-owl-panel ${mounted ? 'panel-visible' : ''}`}>
+          <div className="owl-branding flex flex-col items-center lg:items-start text-center lg:text-left">
+            <div className="badge-mono border-[#00E5FF]/40 text-[#00E5FF] bg-[#00E5FF]/[0.06] inline-block mb-4 text-[10px]">
+              SECURITY PROTOCOL ENGAGED
             </div>
-            
-            {/* --- NEW COMPETITOR TEXT --- */}
-            <div className="mt-12 text-center relative z-10 flex flex-col items-center gap-3">
-              <div className="badge-mono border-[#00E5FF]/40 text-[#00E5FF] bg-[#00E5FF]/[0.06] inline-block px-3 py-1 text-[10px] tracking-widest uppercase">
-                COMPETITION ARENA
-              </div>
-              <h2 className="text-xl md:text-2xl font-light tracking-[0.25em] text-white uppercase mt-1">
-                Competitor <span className="text-[#00E5FF] font-bold">Portal</span>
-              </h2>
-              <p className="text-[var(--mist)]/60 text-[10px] tracking-[0.15em] uppercase max-w-[320px] leading-relaxed">
-                Step into the arena. The ultimate AI hackathon by IEEE CS SUSL awaits.
-              </p>
-            </div>
+            <img 
+              src="https://github.com/nngeek195/mywork/blob/b1/Pasted%20image.png?raw=true" 
+              alt="InnovaX Logo" 
+              className="w-full max-w-[280px] md:max-w-[320px] drop-shadow-[0_0_15px_rgba(0,229,255,0.3)] mt-2"
+            />
           </div>
         </div>
 
@@ -125,15 +116,15 @@ export default function Login() {
             <div className="login-card-accent" />
 
             <h2 className="text-2xl md:text-3xl font-extrabold tracking-[0.12em] uppercase text-white mb-2 text-left">
-              SIGN <span className="text-[#00E5FF] drop-shadow-[0_0_8px_rgba(0,229,255,0.4)]">IN</span>
+              PORTAL <span className="text-[#00E5FF] drop-shadow-[0_0_8px_rgba(0,229,255,0.4)]">ACCESS</span>
             </h2>
             <p className="text-[var(--mist)] text-xs tracking-widest uppercase mb-8 text-left">
-              AUTHENTICATE TO ACCESS YOUR WORKSPACE
+              AUTHENTICATE TO ACCESS THE COMMAND CENTER
             </p>
 
             {error && (
-              <div className="login-error">
-                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="login-error flex items-start gap-3 bg-red-500/10 border border-red-500/50 text-red-400 p-4 rounded-lg mb-6 text-sm">
+                <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
                 <span>{error}</span>
@@ -144,29 +135,29 @@ export default function Login() {
               {/* Email Field */}
               <div className="login-field login-field-1">
                 <label className="login-label">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                   EMAIL ADDRESS
                 </label>
                 <input
                   type="email"
-                  placeholder="innovax@gmail.com"
+                  placeholder="agent@innovax.io"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  onFocus={() => setActiveField('email')}
-                  onBlur={() => setActiveField('idle')}
+                  onFocus={() => setFocusedField('email')}
+                  onBlur={() => setFocusedField(null)}
                   className="login-input"
                   required
                   autoComplete="email"
                 />
-                <div className={`login-input-glow ${activeField === 'email' ? 'glow-on' : ''}`} />
+                <div className={`login-input-glow ${focusedField === 'email' ? 'glow-on' : ''}`} />
               </div>
 
               {/* Password Field */}
               <div className="login-field login-field-2">
                 <label className="login-label">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                   PASSWORD
@@ -176,20 +167,20 @@ export default function Login() {
                   placeholder="••••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  onFocus={() => setActiveField('password')}
-                  onBlur={() => setActiveField('idle')}
+                  onFocus={() => setFocusedField('password')}
+                  onBlur={() => setFocusedField(null)}
                   className="login-input"
                   required
                   autoComplete="current-password"
                 />
-                <div className={`login-input-glow ${activeField === 'password' ? 'glow-on glow-secure' : ''}`} />
+                <div className={`login-input-glow ${focusedField === 'password' ? 'glow-on glow-secure' : ''}`} />
               </div>
 
               {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="login-submit btn-solid-cyan"
+                className="login-submit btn-solid-cyan w-full justify-center"
               >
                 {loading ? (
                   <span className="flex items-center gap-3 justify-center">
@@ -201,7 +192,7 @@ export default function Login() {
                   </span>
                 ) : (
                   <span className="flex items-center gap-3 justify-center">
-                    INITIATE SESSION
+                    SIGN IN
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
@@ -211,17 +202,17 @@ export default function Login() {
             </form>
 
             {/* Footer */}
-            <div className="login-footer">
+            <div className="login-footer mt-8">
               <div className="login-divider">
                 <div className="login-divider-line" />
                 <span className="login-divider-text">OR</span>
                 <div className="login-divider-line" />
               </div>
-              <p className="text-xs text-gray-500 tracking-[0.2em] uppercase">
+              <p className="text-xs text-[var(--mist)] tracking-[0.2em] uppercase text-center mt-6">
                 NO ACCOUNT?{' '}
                 <Link
                   href="/register"
-                  className="text-[#00E5FF] hover:text-white transition-colors duration-300 font-bold"
+                  className="text-[#00E5FF] hover:text-white transition-colors duration-300 font-bold ml-2"
                 >
                   REGISTER HERE
                 </Link>
@@ -230,7 +221,7 @@ export default function Login() {
           </div>
 
           {/* Bottom attribution */}
-          <div className="login-attribution">
+          <div className="login-attribution text-center mt-6">
             <span className="font-mono text-[9px] tracking-[0.3em] text-[var(--mist)]/40 uppercase">
               InnovaX 1.0 · IEEE CS SUSL
             </span>
