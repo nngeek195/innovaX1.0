@@ -923,7 +923,7 @@ function CircuitBackground() {
                       KNOWN <span className="heading-highlight">HAZARDS</span>
                     </h2>
                     <p className="heading-sub text-center mb-8">
-                      Answers to what most explorers ask before setting off. Still stuck? Reach the crew below.
+                      Answers to what most explorers ask before setting off.
                     </p>
                   </Reveal>
 
