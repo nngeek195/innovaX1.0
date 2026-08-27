@@ -5,6 +5,9 @@ import { FaPlus } from "react-icons/fa";
 import { FaInstagram, FaLinkedinIn, FaYoutube, FaFacebookF} from "react-icons/fa6";
 import SmoothFollower from './components/SmoothFollower';
 import CSChapterLogo from '../public/CSChapterLogo.png'
+import first from '../public/1st.png'
+import second from '../public/2nd.png'
+import third from '../public/3rd.png'
 
 /* ------------------------------------------------------------------ */
 /*  Demo content                                                      */
@@ -399,28 +402,63 @@ export default function Home() {
                     </p>
                   </Reveal>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-14 w-full max-w-5xl items-stretch mt-8">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-16 w-full max-w-5xl items-stretch mt-8">
                     <Reveal delay={0} className="h-full">
-                      <div className="glass-panel text-left h-full flex flex-col">
-                        <h3 className="text-xs text-[var(--mist)] tracking-widest uppercase mb-1">1st Runner Up</h3>
-                        <p className="text-sm text-[var(--mist)] mb-6">Awarded for outstanding innovation and technical execution.</p>
-                        <p className="text-2xl font-bold text-[#00E5FF] mt-auto">LKR 30,000</p>
+                      <div className="glass-panel text-center h-full flex flex-col items-center">
+
+                        <h3 className="text-l text-[var(--gold)] tracking-widest uppercase relative z-10 font-bold">
+                          1st Runner Up
+                        </h3>
+
+                        <img
+                          src={second.src}
+                          className="w-40 h-40 object-contain"
+                          alt="1st Runner Up"
+                        />
+
+                        <p className="text-2xl font-bold text-[#00E5FF] mt-4">
+                          LKR 30,000
+                        </p>
+
                       </div>
                     </Reveal>
                     <Reveal delay={120} className="h-full">
-                      <div className="glass-panel text-left border-[var(--gold)]/40 relative overflow-hidden transform md:-translate-y-4 h-full scale-115 flex flex-col shadow-[0_0_30px_rgba(0,229,255,0.12)] mt-4 md:mt-4">
+                      <div className="glass-panel text-center border-[var(--gold)]/40 relative overflow-hidden transform md:-translate-y-4 h-full scale-130 flex flex-col items-center shadow-[0_0_30px_rgba(0,229,255,0.12)] mt-4 md:mt-4">
+
                         <div className="absolute inset-0 bg-gradient-to-b from-[var(--gold)]/10 to-transparent z-0 pointer-events-none" />
-                        <span className="badge-mono border-[var(--gold)]/50 text-[var(--gold)] bg-[var(--gold)]/10 absolute top-6 right-6 z-10">Grand Prize</span>
-                        <h3 className="text-xs text-[var(--gold)] tracking-widest uppercase mb-1 relative z-10 font-bold">Championship</h3>
-                        <p className="text-sm text-white mb-6 relative z-10 pr-24">For the team that conquers the toughest Agentic AI challenge on the journey to victory.</p>
-                        <p className="text-3xl font-black text-[var(--gold)] relative z-10 mt-auto">LKR 50,000</p>
+
+                        <h3 className="text-xl text-[var(--gold)] tracking-widest uppercase relative z-10 font-bold">
+                          Championship
+                        </h3>
+
+                        <img
+                          src={first.src}
+                          className="w-40 h-40 object-contain relative z-10"
+                        />
+
+                        <p className="text-3xl font-black text-[var(--gold)] relative z-10 mt-4">
+                          LKR 50,000
+                        </p>
+
                       </div>
                     </Reveal>
                     <Reveal delay={240} className="h-full">
-                      <div className="glass-panel text-left h-full flex flex-col">
-                        <h3 className="text-xs text-[var(--mist)] tracking-widest uppercase mb-1">2nd Runner Up</h3>
-                        <p className="text-sm text-[var(--mist)] mb-6">Celebrating teams that show great potential and sharp problem-solving.</p>
-                        <p className="text-2xl font-bold text-[#00E5FF] mt-auto">LKR 20,000</p>
+                      <div className="glass-panel text-center h-full flex flex-col items-center">
+
+                        <h3 className="text-l text-[var(--gold)] tracking-widest uppercase relative z-10 font-bold">
+                          2nd Runner Up
+                        </h3>
+
+                        <img
+                          src={third.src}
+                          className="w-40 h-40 object-contain"
+                          alt="2nd Runner Up"
+                        />
+
+                        <p className="text-2xl font-bold text-[#00E5FF] mt-4">
+                          LKR 20,000
+                        </p>
+
                       </div>
                     </Reveal>
                   </div>
@@ -545,22 +583,11 @@ export default function Home() {
                     <div className="badge-mono border-[#00E5FF] text-[#00E5FF] bg-[#00E5FF]/10 inline-block mb-8">
                       Sponsor Packages
                     </div>
-                    <div className="grid grid-cols-1 gap-6 text-left">
-                      {PARTNER_TIERS.map((p) => (
-                        <div key={p.tier} className="flex flex-col md:flex-row items-start md:items-center gap-6 p-4 rounded-xl hover:bg-white/5 transition">
-                          <div className="w-32 h-16 bg-[var(--slate-raised)] rounded flex items-center justify-center shrink-0 border border-white/10 font-mono text-xs text-[var(--mist)]">
-                            LOGO
-                          </div>
-                          <div>
-                            <h3 className="font-display text-xl font-bold text-white">{p.tier}</h3>
-                            <p className="text-sm text-[var(--mist)] mt-1">{p.price}. {p.perks}</p>
-                          </div>
-                        </div>
-                      ))}
+                    <div>
+                      <div>
+
+                      </div>
                     </div>
-                    <a href="mailto:ssomaweera@foc.sab.ac.lk?subject=InnovaX%20Partnership%20Enquiry" className="inline-block mt-8 text-xs font-mono tracking-widest uppercase text-[#00E5FF] hover:text-white transition">
-                      Become a Partner →
-                    </a>
                   </Reveal>
                 </section>
               </div>
