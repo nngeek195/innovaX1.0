@@ -326,7 +326,6 @@ body {
   .partner-badge-button:hover,
   .partner-badge-button:focus-visible {
     transform: scale(1.1);
-    filter: drop-shadow(0 0 24px rgba(0, 229, 255, 0.35));
     outline: none;
   }
 
