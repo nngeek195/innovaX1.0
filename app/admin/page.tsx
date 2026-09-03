@@ -467,15 +467,45 @@ export default function AdminDashboard() {
         </div>
         <br /><br /><br />
         <div className="glass-panel border-white/10 bg-[#121822]/50 p-6 mb-12">
-          <h2 className="text-[#00E5FF] font-mono text-xs tracking-[0.2em] uppercase mb-4">Judges Portal Access</h2>
+          <h2 className="text-[#00E5FF] font-mono text-xs tracking-[0.2em] uppercase mb-4">
+            Judges Portal Access
+          </h2>
+
+          {/* Judges Portal Link */}
+          <div className="mb-5">
+            <p className="text-gray-500 font-mono text-[10px] uppercase tracking-widest mb-2">
+              Judges Portal URL
+            </p>
+
+            <a
+              href="/judges"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-[#00E5FF] font-mono text-sm hover:underline"
+            >
+              🔗 Open Judges Portal
+            </a>
+
+            <p className="text-gray-600 text-[10px] mt-2">
+              This link automatically works in both local development and production hosting.
+            </p>
+          </div>
+
+          {/* Passkey */}
           <div className="flex gap-4 items-center mb-4">
-            <input 
-              type="text" 
-              value={passkeyInput} 
-              onChange={(e) => setPasskeyInput(e.target.value)} 
+            <input
+              type="text"
+              value={passkeyInput}
+              onChange={(e) => setPasskeyInput(e.target.value)}
               className="bg-[#05080C] border border-white/10 rounded p-2 text-white font-mono text-sm w-full max-w-sm focus:border-[#00E5FF] focus:outline-none"
             />
-            <button onClick={updatePasskey} className="text-xs border border-[#00E5FF] text-[#00E5FF] hover:bg-[#00E5FF]/10 px-4 py-2 rounded transition-colors">UPDATE KEY</button>
+
+            <button
+              onClick={updatePasskey}
+              className="text-xs border border-[#00E5FF] text-[#00E5FF] hover:bg-[#00E5FF]/10 px-4 py-2 rounded transition-colors"
+            >
+              UPDATE KEY
+            </button>
           </div>
         </div>
 
