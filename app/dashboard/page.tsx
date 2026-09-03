@@ -223,67 +223,6 @@ export default function Dashboard() {
             LOGOUT
           </button>
         </div>
-        {/* ================= DYNAMIC SYSTEM STATUS BANNERS ================= */}
-        <div className="mb-8 flex flex-col gap-4">
-          
-          {/* 1. Registration is still open */}
-          {systemConfig?.registrationOpen && (
-            <div className="glass-panel border-[#00E5FF]/40 bg-[#00E5FF]/5 p-5 md:p-6 rounded-xl flex items-center gap-4 shadow-[0_0_20px_rgba(0,229,255,0.05)] animate-fade-in">
-              <div className="w-10 h-10 rounded-full bg-[#00E5FF]/20 flex items-center justify-center flex-shrink-0 animate-pulse">
-                <span className="text-lg">🚀</span>
-              </div>
-              <div>
-                <h3 className="text-[#00E5FF] font-bold tracking-widest uppercase text-sm mb-1">Registrations Are Open</h3>
-                <p className="text-gray-300 text-xs font-mono leading-relaxed">Your profile is secure in our database. Hold tight! The proposal phase will commence shortly after the registration gateway closes.</p>
-              </div>
-            </div>
-          )}
-
-          {/* 2. Limbo State: Registration Closed, but No Phase Open */}
-          {!systemConfig?.registrationOpen && !systemConfig?.phase1Open && !systemConfig?.phase2Open && (
-            <div className="glass-panel border-gray-500/40 bg-gray-500/10 p-5 md:p-6 rounded-xl flex items-center gap-4 animate-fade-in">
-              <div className="w-10 h-10 rounded-full bg-gray-500/20 flex items-center justify-center flex-shrink-0">
-                <span className="text-lg text-gray-300">⏳</span>
-              </div>
-              <div>
-                <h3 className="text-gray-300 font-bold tracking-widest uppercase text-sm mb-1">System Processing</h3>
-                <p className="text-gray-400 text-xs font-mono leading-relaxed">We are currently working behind the scenes to prepare the next stage. The dashboard will update automatically when the phase begins.</p>
-              </div>
-            </div>
-          )}
-
-          {/* 3. Not Selected for Round 2 */}
-          {systemConfig?.round2Revealed && !userData?.selectedForRound2 && (
-            <div className="glass-panel border-purple-500/30 bg-purple-500/10 p-5 md:p-6 rounded-xl flex items-start gap-4 shadow-[0_0_20px_rgba(168,85,247,0.05)] animate-fade-in">
-              <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0">
-                <span className="text-lg text-purple-400">💡</span>
-              </div>
-              <div>
-                <h3 className="text-purple-400 font-bold tracking-widest uppercase text-sm mb-1">Thank You For Innovating</h3>
-                <p className="text-gray-300 text-xs font-mono leading-relaxed">
-                  You did a phenomenal job, but unfortunately, your team was not selected to advance to Round 2. The competition was incredibly fierce this year, and we highly appreciate your effort. Keep pushing boundaries, and we hope to see you in the next hackathon!
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* 4. Not Selected for Finals (But made it to R2) */}
-          {systemConfig?.finalistsCalled && userData?.selectedForRound2 && !userData?.isFinalist && (
-            <div className="glass-panel border-blue-500/30 bg-blue-500/10 p-5 md:p-6 rounded-xl flex items-start gap-4 shadow-[0_0_20px_rgba(59,130,246,0.05)] animate-fade-in">
-              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                <span className="text-lg text-blue-400">🌟</span>
-              </div>
-              <div>
-                <h3 className="text-blue-400 font-bold tracking-widest uppercase text-sm mb-1">A Phenomenal Run</h3>
-                <p className="text-gray-300 text-xs font-mono leading-relaxed">
-                  Making it to Phase 2 is a massive achievement! While your project wasn't selected for the Finalist stage this time, your prototype showed exceptional potential. Be proud of what you've built, and keep innovating!
-                </p>
-              </div>
-            </div>
-          )}
-          
-        </div>
-        {/* ================================================================= */}
 
         {/* --- PHASE 1: PROPOSAL SUBMISSION --- */}
         {systemConfig?.phase1Open ? (

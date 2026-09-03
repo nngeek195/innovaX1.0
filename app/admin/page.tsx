@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, getDocs, doc, getDoc, setDoc, onSnapshot, updateDoc } from 'firebase/firestore';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -142,17 +140,7 @@ export default function AdminDashboard() {
     requestAction(
       "PHASE 1 OVERRIDE",
       `Are you sure you want to ${opening ? 'DEPLOY' : 'LOCK'} the Proposal Submission Phase?`,
-      async () => {
-        // Create an update object
-        const updateData: any = { phase1Open: opening };
-        
-        // If we are locking the phase, reset the deadline to an empty string
-        if (!opening) {
-          updateData.phase1Deadline = '';
-        }
-
-        await updateDoc(doc(db, "settings", "public"), updateData);
-      }
+      async () => await updateDoc(doc(db, "settings", "public"), { phase1Open: opening })
     );
   };
 
@@ -165,17 +153,7 @@ export default function AdminDashboard() {
     requestAction(
       "PHASE 2 OVERRIDE",
       `Are you sure you want to ${opening ? 'DEPLOY' : 'LOCK'} the Prototype Submission Phase?`,
-      async () => {
-        // Create an update object
-        const updateData: any = { phase2Open: opening };
-        
-        // If we are locking the phase, reset the deadline to an empty string
-        if (!opening) {
-          updateData.phase2Deadline = '';
-        }
-
-        await updateDoc(doc(db, "settings", "public"), updateData);
-      }
+      async () => await updateDoc(doc(db, "settings", "public"), { phase2Open: opening })
     );
   };
 
@@ -404,19 +382,7 @@ export default function AdminDashboard() {
               {systemConfig?.phase1Open ? 'Phase 1 is LIVE' : 'Phase 1 is LOCKED'}
             </button>
             <div className="flex gap-2">
-              <div className="w-full">
-                <DatePicker
-                  selected={p1Deadline ? new Date(p1Deadline) : null}
-                  onChange={(date: Date | null) => setP1Deadline(date ? date.toISOString() : '')}
-                  showTimeSelect
-                  timeFormat="HH:mm"
-                  timeIntervals={15}
-                  dateFormat="MMMM d, yyyy h:mm aa"
-                  placeholderText="Select Date & Time"
-                  className="bg-[#05080C] border border-white/10 rounded p-2 text-xs w-full focus:border-[#00E5FF] text-white"
-                  wrapperClassName="w-full"
-                />
-              </div>
+              <input type="datetime-local" value={p1Deadline} onChange={(e) => setP1Deadline(e.target.value)} className="bg-[#05080C] border border-white/10 rounded p-2 text-xs w-full focus:border-[#00E5FF]" />
               <button onClick={() => handleSetDeadline(1)} className="btn-outline-cyan text-[10px] px-3">SET</button>
             </div>
             
@@ -437,19 +403,7 @@ export default function AdminDashboard() {
               {systemConfig?.phase2Open ? 'Phase 2 is LIVE' : 'Phase 2 is LOCKED'}
             </button>
             <div className="flex gap-2">
-              <div className="w-full">
-                <DatePicker
-                  selected={p2Deadline ? new Date(p2Deadline) : null}
-                  onChange={(date: Date | null) => setP2Deadline(date ? date.toISOString() : '')}
-                  showTimeSelect
-                  timeFormat="HH:mm"
-                  timeIntervals={15}
-                  dateFormat="MMMM d, yyyy h:mm aa"
-                  placeholderText="Select Date & Time"
-                  className="bg-[#05080C] border border-white/10 rounded p-2 text-xs w-full focus:border-[var(--gold)] text-white"
-                  wrapperClassName="w-full"
-                />
-              </div>
+              <input type="datetime-local" value={p2Deadline} onChange={(e) => setP2Deadline(e.target.value)} className="bg-[#05080C] border border-white/10 rounded p-2 text-xs w-full focus:border-[var(--gold)]" />
               <button onClick={() => handleSetDeadline(2)} className="border border-[var(--gold)] text-[var(--gold)] hover:bg-[var(--gold)]/10 rounded text-[10px] px-3">SET</button>
             </div>
 
@@ -465,7 +419,7 @@ export default function AdminDashboard() {
           </div>
 
         </div>
-        <br /><br /><br />
+
         <div className="glass-panel border-white/10 bg-[#121822]/50 p-6 mb-12">
           <h2 className="text-[#00E5FF] font-mono text-xs tracking-[0.2em] uppercase mb-4">Judges Portal Access</h2>
           <div className="flex gap-4 items-center mb-4">
