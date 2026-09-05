@@ -226,10 +226,6 @@ export default function Home() {
   const rootRef = useRef<HTMLElement>(null);
   const scrollVideoRef = useRef<HTMLVideoElement>(null);
   const scrollContentRef = useRef<HTMLDivElement>(null);
-  
-  // Track 1: Chapters & Treasury
-  const horizontalContainerRef = useRef<HTMLDivElement>(null);
-  const horizontalTrackRef = useRef<HTMLDivElement>(null);
 
   // Track 2: Partners & FAQ
   const horizontalContainerRef2 = useRef<HTMLDivElement>(null);
@@ -375,17 +371,6 @@ function CircuitBackground() {
         setIsShattered(false); 
       }
 
-      // 2A. Horizontal Scroll 1 (Chapters & Treasury)
-      if (horizontalContainerRef.current && horizontalTrackRef.current) {
-        const rect = horizontalContainerRef.current.getBoundingClientRect();
-        const scrollDistance = rect.height - windowHeight;
-        
-        let hProgress = -rect.top / scrollDistance;
-        hProgress = Math.max(0, Math.min(1, hProgress));
-        
-        horizontalTrackRef.current.style.transform = `translateX(calc(-50% + ${hProgress * 50}%))`;
-      }
-
       // 2B. Horizontal Scroll 2 (Partners & FAQ)
       if (horizontalContainerRef2.current && horizontalTrackRef2.current) {
         const rect2 = horizontalContainerRef2.current.getBoundingClientRect();
@@ -404,8 +389,8 @@ function CircuitBackground() {
 
       // 3. Video Scrubbing Logic (Constrained to Sections 2 through 5)
       const video = scrollVideoRef.current;
-      const startZone = horizontalContainerRef.current;
-      const endZone = horizontalContainerRef2.current;
+      const startZone = document.getElementById('chapters');
+      const endZone = document.getElementById('partners-faq');
 
       if (video && startZone && endZone) {
         const startPos = startZone.offsetTop;
@@ -553,214 +538,253 @@ function CircuitBackground() {
 
       <div ref={scrollContentRef} className={`relative z-30 pt-32 transition-all duration-[1200ms] ease-[cubic-bezier(0.25,1,0.5,1)] 
         ${isShattered ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-[0.95] translate-y-10 pointer-events-none'}`}>
+      </div>
         
         {/* =========================================
             HORIZONTAL ZONE 1 (Chapters -> Treasury)
         ========================================= */}
-        <div id="horizontal-scroll-zone-1" ref={horizontalContainerRef} className="relative h-[250vh] w-full z-20">
-          <div className="sticky top-0 h-screen w-full overflow-hidden">
-            <div 
-              ref={horizontalTrackRef} 
-              className="flex h-full w-[200vw] will-change-transform ease-out"
-              style={{ transform: 'translateX(-50%)' }} 
-            >
-              
-              {/* LEFT: TREASURY (Sector 02) */}
-              <div className="w-screen h-full flex items-center justify-center overflow-y-auto">
-                <section id="treasury" className="section-container pt-0 w-full">
-                  <Reveal className="w-full flex flex-col items-center text-center">
-                    <SectorTag n="02" label="TREASURY" />
-                    <h2 className="heading-glow justify-center mb-8">
-                      THE <span className="heading-highlight">PRIZE POOL</span>
-                    </h2>
-                    <p className="heading-sub text-center mb-8">
-                      Every finalist walks away with a certificate and mentorship access - the treasury below is
-                      reserved for the teams who make it to the top of the leaderboard.
-                    </p>
-                  </Reveal>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-16 w-full max-w-5xl items-stretch mt-8">
-                    <Reveal delay={0} className="h-full">
-                      <div className="glass-panel text-center h-full flex flex-col items-center">
-
-                        <h3 className="text-l text-[var(--gold)] tracking-widest uppercase relative z-10 font-bold">
-                          1st Runner Up
-                        </h3>
-
-                        <img
-                          src={second.src}
-                          className="w-40 h-40 object-contain"
-                          alt="1st Runner Up"
-                        />
-
-                        <p className="text-2xl font-bold text-[#00E5FF] mt-4">
-                          LKR 30,000
-                        </p>
-
-                      </div>
-                    </Reveal>
-                    <Reveal delay={120} className="h-full">
-                      <div className="glass-panel text-center border-[var(--gold)]/40 relative overflow-hidden transform md:-translate-y-4 h-full scale-130 flex flex-col items-center shadow-[0_0_30px_rgba(0,229,255,0.12)] mt-4 md:mt-4">
-
-                        <div className="absolute inset-0 bg-gradient-to-b from-[var(--gold)]/10 to-transparent z-0 pointer-events-none" />
-
-                        <h3 className="text-xl text-[var(--gold)] tracking-widest uppercase relative z-10 font-bold">
-                          Championship
-                        </h3>
-
-                        <img
-                          src={first.src}
-                          className="w-40 h-40 object-contain relative z-10"
-                        />
-
-                        <p className="text-3xl font-black text-[var(--gold)] relative z-10 mt-4">
-                          LKR 50,000
-                        </p>
-
-                      </div>
-                    </Reveal>
-                    <Reveal delay={240} className="h-full">
-                      <div className="glass-panel text-center h-full flex flex-col items-center">
-
-                        <h3 className="text-l text-[var(--gold)] tracking-widest uppercase relative z-10 font-bold">
-                          2nd Runner Up
-                        </h3>
-
-                        <img
-                          src={third.src}
-                          className="w-40 h-40 object-contain"
-                          alt="2nd Runner Up"
-                        />
-
-                        <p className="text-2xl font-bold text-[#00E5FF] mt-4">
-                          LKR 20,000
-                        </p>
-
-                      </div>
-                    </Reveal>
-                  </div>
-                </section>
-              </div>
-
-              {/* RIGHT: CHAPTERS (Sector 01) */}
-              <div className="w-screen h-full flex items-center justify-center overflow-y-auto">
-              <section id="chapters" className="section-container pt-0 w-full relative z-20">
+        {/* =========================================
+    CHAPTERS (Sector 01) - Vertical
+========================================= */}
+<section
+  id="chapters"
+  className="section-container pt-20 pb-20 w-full relative z-20"
+>
   <Reveal className="w-full flex flex-col items-center text-center mb-10">
     <SectorTag n="01" label="CHAPTERS" />
+
     <h2 className="heading-glow justify-center">
-      WHO&apos;S ON THIS <span className="heading-highlight">EXPEDITION</span>
+      WHO&apos;S ON THIS{' '}
+      <span className="heading-highlight">EXPEDITION</span>
     </h2>
+
     <p className="heading-sub text-center">
-      InnovaX is run by student volunteers of the IEEE Computer Society Chapter at Sabaragamuwa
-                      University of Sri Lanka. Teams of 2 – 4 undergraduates pick one track below and spend six
-                      weeks turning an idea into a working Agentic AI proposal.
+      InnovaX is run by student volunteers of the IEEE Computer Society
+      Chapter at Sabaragamuwa University of Sri Lanka. Teams of 2 – 4
+      undergraduates pick one track below and spend six weeks turning an
+      idea into a working Agentic AI proposal.
     </p>
   </Reveal>
 
   <Reveal className="w-full flex justify-center h-[500px] mt-8 perspective-[70em]">
     <div className="cyber-book relative h-[80%] max-h-[450px] min-h-[300px] w-full max-w-[800px] mx-auto border-2 border-[#00E5FF]/30 rounded-lg shadow-[0_0_80px_rgba(0,229,255,0.15)] transform-style-3d transition-shadow duration-500 hover:shadow-[0_0_120px_rgba(0,229,255,0.4)]">
-      
-      {/* =========================================
-          STATIC LEFT PAGE (Visible when book is closed)
-      ========================================= */}
+
+      {/* STATIC LEFT PAGE */}
       <div className="absolute top-0 left-0 w-1/2 h-full z-0 flex flex-col items-center justify-center p-6 border-r border-[#00E5FF]/10 overflow-hidden">
         <a href="#" className="flex flex-col items-center group/dl cursor-pointer z-10 w-full">
           <div className="w-20 h-20 rounded-full border border-[#00E5FF]/50 flex items-center justify-center bg-[#00E5FF]/10 mb-6 group-hover/dl:bg-[#00E5FF]/30 transition-all duration-300 shadow-[0_0_20px_rgba(0,229,255,0.2)] group-hover/dl:shadow-[0_0_40px_rgba(0,229,255,0.6)] group-hover/dl:scale-110">
-            {/* Bouncing SVG Icon */}
-            <svg className="w-10 h-10 text-[#00E5FF] animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            <svg
+              className="w-10 h-10 text-[#00E5FF] animate-bounce"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
             </svg>
           </div>
-          <span className="font-display text-white text-base md:text-lg tracking-widest text-center relative after:absolute after:-bottom-2 after:left-1/2 after:-translate-x-1/2 after:h-[2px] after:w-0 group-hover/dl:after:w-full after:bg-[#00E5FF] after:transition-all after:duration-300">
-            DOWNLOAD<br/>DELEGATE BOOK
+
+          <span className="font-display text-white text-base md:text-lg tracking-widest text-center">
+            DOWNLOAD
+            <br />
+            DELEGATE BOOK
           </span>
         </a>
       </div>
 
-      {/* =========================================
-          PAGE 1: Cover (Right Side) & Track 1
-      ========================================= */}
-      <div className="cyber-page z-[3]" onClick={(e) => e.currentTarget.classList.toggle('flipped')}>
-        
-        {/* SIDE 1: The Cover */}
+      {/* PAGE 1 */}
+      <div
+        className="cyber-page z-[3]"
+        onClick={(e) => e.currentTarget.classList.toggle('flipped')}
+      >
         <div className="cyber-side side-1 flex flex-col items-center justify-center text-center overflow-hidden group">
           <CircuitBackground />
+
           <div className="relative z-10 flex flex-col items-center">
-            <div className="w-16 h-16 border border-[#00E5FF]/40 rounded-full flex items-center justify-center mb-4 shadow-[0_0_15px_rgba(0,229,255,0.2)] bg-[#05080C]/50 backdrop-blur-sm transition-transform group-hover:scale-110">
-              <span className="font-mono text-xs text-[#00E5FF] tracking-widest">INIT</span>
+            <div className="w-16 h-16 border border-[#00E5FF]/40 rounded-full flex items-center justify-center mb-4">
+              <span className="font-mono text-xs text-[#00E5FF] tracking-widest">
+                INIT
+              </span>
             </div>
-            <h3 className="font-display text-3xl font-bold text-white tracking-widest mb-2 shadow-black drop-shadow-md relative inline-block after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 group-hover:after:w-full after:bg-[#00E5FF] after:transition-all after:duration-500">
+
+            <h3 className="font-display text-3xl font-bold text-white tracking-widest mb-2">
               EXPEDITION
             </h3>
-            <p className="text-[var(--mist)] text-sm font-mono tracking-[0.3em] drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] mt-2">MANIFESTO</p>
-            <div className="mt-12 badge-mono border-[#00E5FF]/40 text-[#00E5FF] bg-[#00E5FF]/20 backdrop-blur-md cursor-pointer animate-pulse">CLICK TO OPEN</div>
+
+            <p className="text-[var(--mist)] text-sm font-mono tracking-[0.3em] mt-2">
+              MANIFESTO
+            </p>
+
+            <div className="mt-12 badge-mono border-[#00E5FF]/40 text-[#00E5FF] bg-[#00E5FF]/20">
+              CLICK TO OPEN
+            </div>
           </div>
         </div>
-        
-        {/* SIDE 2: Track 1 (Visible when flipped to the left) */}
+
         <div className="cyber-side side-2 flex flex-col justify-center group">
-          <span className="font-mono text-xs text-[#00E5FF] bg-[#00E5FF]/10 px-2 py-1 rounded inline-block w-max mb-4">{TRACKS[0].code}</span>
-          <div className="w-max max-w-full mb-4">
-            <h3 className="font-display text-2xl font-bold text-white relative inline-block after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 group-hover:after:w-full after:bg-[#00E5FF] after:transition-all after:duration-500">{TRACKS[0].title}</h3>
-          </div>
-          <p className="text-base text-[var(--mist)] leading-relaxed">{TRACKS[0].desc}</p>
+          <span className="font-mono text-xs text-[#00E5FF] bg-[#00E5FF]/10 px-2 py-1 rounded inline-block w-max mb-4">
+            {TRACKS[0].code}
+          </span>
+
+          <h3 className="font-display text-2xl font-bold text-white mb-4">
+            {TRACKS[0].title}
+          </h3>
+
+          <p className="text-base text-[var(--mist)] leading-relaxed">
+            {TRACKS[0].desc}
+          </p>
         </div>
       </div>
 
-      {/* =========================================
-          PAGE 2: Track 2 & Track 3
-      ========================================= */}
-      <div className="cyber-page z-[2]" onClick={(e) => e.currentTarget.classList.toggle('flipped')}>
-        
-        {/* SIDE 1: Track 2 (Visible on right when Page 1 flips) */}
+      {/* PAGE 2 */}
+      <div
+        className="cyber-page z-[2]"
+        onClick={(e) => e.currentTarget.classList.toggle('flipped')}
+      >
         <div className="cyber-side side-1 flex flex-col justify-center group">
-          <span className="font-mono text-xs text-[#00E5FF] bg-[#00E5FF]/10 px-2 py-1 rounded inline-block w-max mb-4">{TRACKS[1].code}</span>
-          <div className="w-max max-w-full mb-4">
-            <h3 className="font-display text-2xl font-bold text-white relative inline-block after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 group-hover:after:w-full after:bg-[#00E5FF] after:transition-all after:duration-500">{TRACKS[1].title}</h3>
-          </div>
-          <p className="text-base text-[var(--mist)] leading-relaxed">{TRACKS[1].desc}</p>
+          <span className="font-mono text-xs text-[#00E5FF] bg-[#00E5FF]/10 px-2 py-1 rounded inline-block w-max mb-4">
+            {TRACKS[1].code}
+          </span>
+
+          <h3 className="font-display text-2xl font-bold text-white mb-4">
+            {TRACKS[1].title}
+          </h3>
+
+          <p className="text-base text-[var(--mist)] leading-relaxed">
+            {TRACKS[1].desc}
+          </p>
         </div>
-        
-        {/* SIDE 2: Track 3 (Visible on left when Page 2 flips) */}
+
         <div className="cyber-side side-2 flex flex-col justify-center group">
-          <span className="font-mono text-xs text-[#00E5FF] bg-[#00E5FF]/10 px-2 py-1 rounded inline-block w-max mb-4">{TRACKS[2].code}</span>
-          <div className="w-max max-w-full mb-4">
-            <h3 className="font-display text-2xl font-bold text-white relative inline-block after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 group-hover:after:w-full after:bg-[#00E5FF] after:transition-all after:duration-500">{TRACKS[2].title}</h3>
-          </div>
-          <p className="text-base text-[var(--mist)] leading-relaxed">{TRACKS[2].desc}</p>
+          <span className="font-mono text-xs text-[#00E5FF] bg-[#00E5FF]/10 px-2 py-1 rounded inline-block w-max mb-4">
+            {TRACKS[2].code}
+          </span>
+
+          <h3 className="font-display text-2xl font-bold text-white mb-4">
+            {TRACKS[2].title}
+          </h3>
+
+          <p className="text-base text-[var(--mist)] leading-relaxed">
+            {TRACKS[2].desc}
+          </p>
         </div>
       </div>
 
-      {/* =========================================
-          PAGE 3: Outro
-      ========================================= */}
-      <div className="cyber-page z-[1]" onClick={(e) => e.currentTarget.classList.toggle('flipped')}>
-        
-        {/* SIDE 1: End / Choose Path (Visible on right when Page 2 flips) */}
+      {/* PAGE 3 */}
+      <div
+        className="cyber-page z-[1]"
+        onClick={(e) => e.currentTarget.classList.toggle('flipped')}
+      >
         <div className="cyber-side side-1 flex flex-col items-center justify-center text-center group">
-           <div className="w-max max-w-full mb-4">
-             <h3 className="font-display text-xl font-bold text-white relative inline-block after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 group-hover:after:w-full after:bg-[#00E5FF] after:transition-all after:duration-500">
-               CHOOSE YOUR PATH
-             </h3>
-           </div>
-           <p className="text-sm text-[var(--mist)] max-w-[80%]">Select one track and spend six weeks turning your idea into a working Agentic AI proposal.</p>
+          <h3 className="font-display text-xl font-bold text-white mb-4">
+            CHOOSE YOUR PATH
+          </h3>
+
+          <p className="text-sm text-[var(--mist)] max-w-[80%]">
+            Select one track and spend six weeks turning your idea into a
+            working Agentic AI proposal.
+          </p>
         </div>
-        
-        {/* SIDE 2: System End (Blank back page) */}
+
         <div className="cyber-side side-2 flex items-center justify-center">
-           <p className="font-mono text-xs text-[var(--mist)]/40 tracking-[0.5em]">SYSTEM_END</p>
+          <p className="font-mono text-xs text-[var(--mist)]/40 tracking-[0.5em]">
+            SYSTEM_END
+          </p>
         </div>
       </div>
-
     </div>
   </Reveal>
 </section>
-              </div>
 
-            </div>
-          </div>
-        </div>
-        </div>
+
+{/* =========================================
+    TREASURY (Sector 02) - Vertical
+========================================= */}
+<section
+  id="treasury"
+  className="section-container pt-20 pb-20 w-full"
+>
+  <Reveal className="w-full flex flex-col items-center text-center">
+    <SectorTag n="02" label="TREASURY" />
+
+    <h2 className="heading-glow justify-center mb-8">
+      THE <span className="heading-highlight">PRIZE POOL</span>
+    </h2>
+
+    <p className="heading-sub text-center mb-8">
+      Every finalist walks away with a certificate and mentorship access -
+      the treasury below is reserved for the teams who make it to the top
+      of the leaderboard.
+    </p>
+  </Reveal>
+
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-16 w-full max-w-5xl mx-auto items-stretch mt-8">
+
+    <Reveal delay={0} className="h-full">
+      <div className="glass-panel text-center h-full flex flex-col items-center">
+        <h3 className="text-lg text-[var(--gold)] tracking-widest uppercase font-bold">
+          1st Runner Up
+        </h3>
+
+        <img
+          src={second.src}
+          className="w-40 h-40 object-contain"
+          alt="1st Runner Up"
+        />
+
+        <p className="text-2xl font-bold text-[#00E5FF] mt-4">
+          LKR 30,000
+        </p>
+      </div>
+    </Reveal>
+
+
+    <Reveal delay={120} className="h-full">
+      <div className="glass-panel text-center border-[var(--gold)]/40 relative overflow-hidden h-full flex flex-col items-center shadow-[0_0_30px_rgba(0,229,255,0.12)]">
+
+        <div className="absolute inset-0 bg-gradient-to-b from-[var(--gold)]/10 to-transparent z-0 pointer-events-none" />
+
+        <h3 className="text-xl text-[var(--gold)] tracking-widest uppercase relative z-10 font-bold">
+          Championship
+        </h3>
+
+        <img
+          src={first.src}
+          className="w-40 h-40 object-contain relative z-10"
+          alt="Championship"
+        />
+
+        <p className="text-3xl font-black text-[var(--gold)] relative z-10 mt-4">
+          LKR 50,000
+        </p>
+      </div>
+    </Reveal>
+
+
+    <Reveal delay={240} className="h-full">
+      <div className="glass-panel text-center h-full flex flex-col items-center">
+        <h3 className="text-lg text-[var(--gold)] tracking-widest uppercase font-bold">
+          2nd Runner Up
+        </h3>
+
+        <img
+          src={third.src}
+          className="w-40 h-40 object-contain"
+          alt="2nd Runner Up"
+        />
+
+        <p className="text-2xl font-bold text-[#00E5FF] mt-4">
+          LKR 20,000
+        </p>
+      </div>
+    </Reveal>
+
+  </div>
+</section>
 
         {/* =========================================
             JOURNEY (Sector 03) - Vertical Scroll
