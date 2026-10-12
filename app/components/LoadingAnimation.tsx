@@ -19,7 +19,7 @@ export default function LoadingAnimation() {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden bg-[#05080C]">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden bg-[#000000]">
       <Lottie
         animationData={loadingAnimation}
         loop={true}
