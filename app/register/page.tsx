@@ -30,6 +30,17 @@ function Shell({ children }: { children: React.ReactNode }) {
       <div className="fixed inset-0 w-full h-full z-[1] reg-grid pointer-events-none" />
       <div className="reg-vignette" />
 
+      {/* Back to Home */}
+      <Link
+        href="/"
+        className="fixed top-5 left-5 z-50 flex items-center gap-2 text-[10px] font-mono tracking-[0.2em] uppercase text-gray-400 hover:text-[#00E5FF] border border-white/10 hover:border-[#00E5FF]/40 bg-[#05080C]/70 backdrop-blur-sm px-4 py-2 rounded-lg transition-all duration-200 group"
+      >
+        <svg className="w-3.5 h-3.5 transition-transform duration-200 group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Home
+      </Link>
+
       <div className="relative z-10">{children}</div>
 
       <style jsx global>{`
