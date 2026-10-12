@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { FaPlus } from "react-icons/fa";
 import { FaInstagram, FaLinkedinIn, FaYoutube, FaFacebookF} from "react-icons/fa6";
 import dynamic from 'next/dynamic';
+import Script from 'next/script';
 import CSChapterLogo from '../public/CSChapterLogo.png'
 import first from '../public/1st.png'
 import second from '../public/2nd.png'
@@ -491,8 +492,10 @@ export default function Home() {
     </p>
   </Reveal>
           
+
   {/* EMBEDDED GUIDEBOOK */}
-  <script src="//static.anyflip.com/plugin/LightBox/js/anyflp-light-box-api-min.js"></script>
+  <Script src="//static.anyflip.com/plugin/LightBox/js/anyflp-light-box-api-min.js" strategy="lazyOnload" />
+  
   <Reveal className="w-full flex flex-col items-center max-w-5xl mx-auto px-2 sm:px-4">
     {/* Terminal / Cyber Header Bar */}
     <div className="w-full bg-[#0a1018] border border-[#00E5FF]/30 rounded-t-xl sm:rounded-t-2xl px-3 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between shadow-[0_0_30px_rgba(0,229,255,0.1)]">

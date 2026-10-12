@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { AmbassadorEmail } from '@/emails/AmbassadorTemplate';
+import { SITE_URL } from '@/lib/config';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -12,10 +13,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No recipients provided' }, { status: 400 });
     }
 
-    // Determine base site URL from request headers or fallback
-    const host = request.headers.get('host') || 'innovax.niranga.tech';
-    const proto = request.headers.get('x-forwarded-proto') || 'https';
-    const origin = customSiteUrl || (host.startsWith('localhost') ? `http://${host}` : `${proto}://${host}`);
+    // Use the central SITE_URL from lib/config.ts (controlled by NEXT_PUBLIC_SITE_URL env var).
+    // An optional siteUrl in the request body can still override it (e.g. for testing).
+    const origin = customSiteUrl || SITE_URL;
 
     const emailBatch = recipients.map((r: {
       email: string;

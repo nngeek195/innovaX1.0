@@ -19,26 +19,20 @@ const UNIVERSITIES = [
 
 const STEP_LABELS = ['Details', 'Credentials', 'Verify'];
 
-// Defined at module scope (not inside Register) so React never remounts it on
-// re-render — otherwise the <video> would restart/freeze on every keystroke.
-// Structured to match the login page's video background 1:1 (plain autoplay
-// video, no JS-driven fade), since that version is confirmed glitch-free.
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="reg-page">
-      {/* Background video removed — clean, stable static background */}
       <div className="fixed inset-0 w-full h-full z-[1] reg-grid pointer-events-none" />
       <div className="reg-vignette" />
 
-      {/* Back to Home */}
       <Link
         href="/"
-        className="fixed top-5 left-5 z-50 flex items-center gap-2 text-[10px] font-mono tracking-[0.2em] uppercase text-gray-400 hover:text-[#00E5FF] border border-white/10 hover:border-[#00E5FF]/40 bg-[#05080C]/70 backdrop-blur-sm px-4 py-2 rounded-lg transition-all duration-200 group"
+        className="fixed top-6 left-6 z-50 flex items-center gap-2 text-[10px] font-mono tracking-[0.2em] uppercase text-gray-400 hover:text-[#00E5FF] transition-all duration-300 group"
       >
-        <svg className="w-3.5 h-3.5 transition-transform duration-200 group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="w-3.5 h-3.5 transition-transform duration-300 group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
-        Home
+        Return Home
       </Link>
 
       <div className="relative z-10">{children}</div>
@@ -48,8 +42,8 @@ function Shell({ children }: { children: React.ReactNode }) {
           position: relative;
           min-height: 100vh;
           background:
-            radial-gradient(circle at 50% -10%, rgba(0, 229, 255, 0.12), transparent 42%),
-            linear-gradient(180deg, #071018 0%, #05080c 55%, #030507 100%);
+            radial-gradient(circle at 50% 0%, rgba(0, 229, 255, 0.08), transparent 50%),
+            linear-gradient(180deg, #05080c 0%, #030406 100%);
         }
 
         .reg-vignette {
@@ -57,33 +51,20 @@ function Shell({ children }: { children: React.ReactNode }) {
           inset: 0;
           z-index: 1;
           pointer-events: none;
-          background: radial-gradient(
-            ellipse 80% 60% at 50% 0%,
-            transparent 0%,
-            rgba(5, 8, 12, 0.35) 100%
-          );
+          background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(3, 4, 6, 0.8) 100%);
         }
 
         .reg-grid {
           background-image:
-            linear-gradient(rgba(0, 229, 255, 0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 229, 255, 0.05) 1px, transparent 1px);
-          background-size: 44px 44px;
-          mask-image: radial-gradient(
-            ellipse 80% 60% at 50% 0%,
-            black,
-            transparent 70%
-          );
+            linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+          background-size: 32px 32px;
+          mask-image: radial-gradient(ellipse 100% 100% at 50% 0%, black, transparent 80%);
         }
       `}</style>
     </div>
   );
 }
-
-// ============================================================================
-// Small reusable field components (self-contained focus glow, matches the
-// login page's input treatment)
-// ============================================================================
 
 function FieldInput({
   label,
@@ -96,27 +77,19 @@ function FieldInput({
   icon?: React.ReactNode;
   hint?: string;
 } & React.InputHTMLAttributes<HTMLInputElement>) {
-  const [focused, setFocused] = useState(false);
   return (
-    <div className={`reg-field ${className}`}>
-      <label className="reg-label">
+    <div className={`flex flex-col gap-2 ${className}`}>
+      <label className="text-[10px] font-mono tracking-widest text-[#00E5FF]/80 uppercase flex items-center gap-1.5 h-[14px]">
         {icon}
         {label}
       </label>
-      <input
-        {...props}
-        onFocus={(e) => {
-          setFocused(true);
-          props.onFocus?.(e);
-        }}
-        onBlur={(e) => {
-          setFocused(false);
-          props.onBlur?.(e);
-        }}
-        className="reg-input"
-      />
-      <div className={`reg-input-glow ${focused ? 'glow-on' : ''}`} />
-      {hint && <p className="text-[10px] font-mono text-[var(--mist)]/60 mt-1.5">{hint}</p>}
+      <div className="relative">
+        <input
+          {...props}
+          className={`w-full bg-black/40 border border-white/10 rounded-md px-4 py-2.5 text-sm text-white focus:border-[#00E5FF]/60 focus:bg-[#00E5FF]/[0.02] outline-none transition-all duration-200 placeholder-white/20 h-[44px] ${props.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        />
+      </div>
+      {hint && <p className="text-[10px] font-mono text-[var(--mist)]/50 mt-0.5">{hint}</p>}
     </div>
   );
 }
@@ -131,30 +104,21 @@ function FieldSelect({
   label: string;
   icon?: React.ReactNode;
 } & React.SelectHTMLAttributes<HTMLSelectElement>) {
-  const [focused, setFocused] = useState(false);
   return (
-    <div className={`reg-field ${className}`}>
-      <label className="reg-label">
+    <div className={`flex flex-col gap-2 ${className}`}>
+      <label className="text-[10px] font-mono tracking-widest text-[#00E5FF]/80 uppercase flex items-center gap-1.5 h-[14px]">
         {icon}
         {label}
       </label>
       <div className="relative">
         <select
           {...props}
-          onFocus={(e) => {
-            setFocused(true);
-            props.onFocus?.(e);
-          }}
-          onBlur={(e) => {
-            setFocused(false);
-            props.onBlur?.(e);
-          }}
-          className="reg-input reg-select"
+          className="w-full bg-black/40 border border-white/10 rounded-md px-4 py-2.5 text-sm text-white focus:border-[#00E5FF]/60 focus:bg-[#00E5FF]/[0.02] outline-none transition-all duration-200 appearance-none h-[44px] cursor-pointer"
         >
           {children}
         </select>
         <svg
-          className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#00E5FF]/60"
+          className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#00E5FF]/50"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -162,30 +126,20 @@ function FieldSelect({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </div>
-      <div className={`reg-input-glow ${focused ? 'glow-on' : ''}`} />
     </div>
   );
 }
 
 function ErrorBanner({ message }: { message: string }) {
   return (
-    <div className="flex items-start gap-3 bg-red-500/10 border border-red-500/50 text-red-400 p-4 rounded-lg mb-6 text-sm animate-fade-in">
+    <div className="flex items-start gap-3 bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-md mb-8 text-sm font-medium animate-fade-in">
       <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
-        />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
       </svg>
       <span>{message}</span>
     </div>
   );
 }
-
-// ============================================================================
-// Register
-// ============================================================================
 
 export default function Register() {
   const router = useRouter();
@@ -194,12 +148,10 @@ export default function Register() {
   const [checkingSystem, setCheckingSystem] = useState(true);
   const [mounted, setMounted] = useState(false);
 
-  // 1 = Details, 2 = Email/Password, 3 = OTP Verification
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Form state
   const [type, setType] = useState('team');
   const [teamName, setTeamName] = useState('');
   const [memberCount, setMemberCount] = useState(2);
@@ -218,20 +170,17 @@ export default function Register() {
   const [ambassadorNotFound, setAmbassadorNotFound] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // OTP state
   const [userOTP, setUserOTP] = useState('');
   const [cooldown, setCooldown] = useState(0);
   const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   useEffect(() => {
     setMounted(true);
-    // Pre-fill ambassador code from ?ref= URL param — preserve exact case
     const params = new URLSearchParams(window.location.search);
     const ref = params.get('ref');
     if (ref) setAmbassadorCode(ref);
   }, []);
 
-  // Debounced live ambassador code lookup
   useEffect(() => {
     const code = ambassadorCode.trim();
     if (!code) {
@@ -272,10 +221,7 @@ export default function Register() {
   }, [ambassadorCode]);
 
   useEffect(() => {
-    const fallbackTimer = setTimeout(() => {
-      setCheckingSystem(false);
-    }, 5000);
-
+    const fallbackTimer = setTimeout(() => setCheckingSystem(false), 5000);
     const unsub = onSnapshot(
       doc(db, 'settings', 'public'),
       (docSnap) => {
@@ -285,11 +231,9 @@ export default function Register() {
       },
       () => {
         clearTimeout(fallbackTimer);
-        // Keep the page usable even when the settings document is temporarily unavailable.
         setCheckingSystem(false);
       }
     );
-
     return () => {
       clearTimeout(fallbackTimer);
       unsub();
@@ -319,10 +263,8 @@ export default function Register() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, name: leader.firstName }),
       });
-
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
-
       setUserOTP('');
       setStep(3);
       setCooldown(300);
@@ -370,7 +312,6 @@ export default function Register() {
         ambassadorCode: trimmedCode || null,
       });
 
-      // If a valid ambassador code was provided, increment their delegateCount
       if (trimmedCode) {
         try {
           const ambRef = doc(db, 'ambassadors', trimmedCode);
@@ -379,9 +320,7 @@ export default function Register() {
             const currentCount = ambSnap.data().delegateCount || 0;
             await setDoc(ambRef, { delegateCount: currentCount + 1 }, { merge: true });
           }
-        } catch {
-          // Non-blocking: if ambassador increment fails, registration still succeeds
-        }
+        } catch { }
       }
 
       router.push('/dashboard');
@@ -392,7 +331,6 @@ export default function Register() {
     }
   };
 
-  // --- OTP box handlers ---
   const otpDigits = Array.from({ length: 6 }, (_, i) => userOTP[i] || '');
 
   const handleOtpChange = (idx: number, raw: string) => {
@@ -423,12 +361,12 @@ export default function Register() {
   if (checkingSystem) {
     return (
       <Shell>
-        <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-[#00E5FF] font-mono tracking-widest">
-          <div className="relative w-14 h-14">
-            <div className="absolute inset-0 rounded-full border-2 border-[#00E5FF]/20" />
-            <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#00E5FF] animate-spin" />
+        <div className="min-h-screen flex flex-col items-center justify-center gap-6 text-[#00E5FF] font-mono tracking-widest">
+          <div className="relative w-12 h-12">
+            <div className="absolute inset-0 rounded-full border border-[#00E5FF]/20" />
+            <div className="absolute inset-0 rounded-full border border-transparent border-t-[#00E5FF] animate-spin" />
           </div>
-          <span className="text-xs animate-pulse">VERIFYING SYSTEM STATUS...</span>
+          <span className="text-xs animate-pulse">ESTABLISHING SECURE CONNECTION...</span>
         </div>
       </Shell>
     );
@@ -438,20 +376,20 @@ export default function Register() {
     return (
       <Shell>
         <div className="min-h-screen flex flex-col justify-center items-center px-6">
-          <div className="w-full max-w-md glass-panel border-red-500/20 shadow-[0_0_30px_rgba(239,68,68,0.06)] text-center py-12 px-8">
-            <div className="w-14 h-14 mx-auto mb-6 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center">
-              <svg className="w-6 h-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="w-full max-w-md bg-black/60 backdrop-blur-xl border border-red-500/20 shadow-2xl text-center py-12 px-10 rounded-xl">
+            <div className="w-12 h-12 mx-auto mb-6 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center justify-center">
+              <svg className="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
-            <h2 className="text-2xl md:text-3xl font-display font-bold mb-4 tracking-wider text-red-400">
-              Registration Closed
+            <h2 className="text-xl md:text-2xl font-mono font-bold mb-3 tracking-wider text-red-500 uppercase">
+              Gateway Sealed
             </h2>
-            <p className="text-[var(--mist)] font-mono text-sm tracking-widest mb-8 leading-relaxed">
-              The gateway is currently sealed. Keep an eye on our announcements for when the portal opens.
+            <p className="text-[var(--mist)] font-mono text-xs tracking-widest mb-8 leading-relaxed opacity-70">
+              Registration for this sector is currently offline. Await further directives.
             </p>
-            <Link href="/" className="btn-outline-cyan inline-block">
-              Return to base
+            <Link href="/" className="btn-outline-cyan inline-block w-full py-3 rounded-md font-mono uppercase tracking-widest text-xs">
+              Abort to Base
             </Link>
           </div>
         </div>
@@ -461,39 +399,40 @@ export default function Register() {
 
   return (
     <Shell>
-      <div className="min-h-screen flex flex-col items-center pt-20 md:pt-24 pb-16 px-4 md:px-6">
-        {/* Branding */}
-        <div className={`flex flex-col items-center mb-8 reg-reveal ${mounted ? 'reg-reveal-in' : ''}`}>
-          <div className="badge-mono border-[#00E5FF]/40 text-[#00E5FF] bg-[#00E5FF]/[0.06] inline-block mb-5 text-[10px]">
-            New Agent Enrollment
+      <div className="min-h-screen flex flex-col items-center pt-24 pb-20 px-4 md:px-6">
+        
+        {/* Header Section */}
+        <div className={`flex flex-col items-center mb-10 reg-reveal ${mounted ? 'reg-reveal-in' : ''}`}>
+          <div className="border border-[#00E5FF]/30 text-[#00E5FF] bg-[#00E5FF]/10 inline-block mb-4 text-[10px] font-mono tracking-widest uppercase px-3 py-1 rounded-sm">
+            Agent Enrollment
           </div>
-          <h1 className="text-3xl md:text-4xl font-display font-black tracking-[0.1em] uppercase text-white text-center">
-            INNOVA<span className="text-[#00E5FF] drop-shadow-[0_0_10px_rgba(0,229,255,0.5)]">X</span> Registration
+          <h1 className="text-3xl md:text-5xl font-black tracking-[0.15em] uppercase text-white text-center">
+            INNOVA<span className="text-[#00E5FF]">X</span> Reg
           </h1>
-          <p className="text-[var(--mist)] text-xs tracking-[0.25em] uppercase mt-2">Command Center Enrollment</p>
+          <div className="h-px w-24 bg-gradient-to-r from-transparent via-[#00E5FF]/50 to-transparent mt-5" />
         </div>
 
         {/* Stepper */}
-        <div className={`w-full max-w-xl flex items-center mb-8 px-2 reg-reveal ${mounted ? 'reg-reveal-in' : ''}`}>
+        <div className={`w-full max-w-lg flex items-center mb-10 px-4 reg-reveal ${mounted ? 'reg-reveal-in' : ''}`}>
           {STEP_LABELS.map((label, i) => {
             const idx = i + 1;
             const state = idx < step ? 'done' : idx === step ? 'current' : 'upcoming';
             return (
               <React.Fragment key={label}>
-                <div className="flex flex-col items-center gap-2 relative">
+                <div className="flex flex-col items-center gap-3 relative z-10">
                   <div
-                    className={`w-8 h-8 rounded-full border flex items-center justify-center text-xs font-mono font-bold transition-all duration-300 ${
+                    className={`w-8 h-8 rounded-sm border flex items-center justify-center text-xs font-mono font-bold transition-all duration-300 ${
                       state === 'done'
-                        ? 'bg-[#00E5FF] border-[#00E5FF] text-[#05080C]'
+                        ? 'bg-[#00E5FF] border-[#00E5FF] text-black shadow-[0_0_10px_rgba(0,229,255,0.3)]'
                         : state === 'current'
-                        ? 'border-[#00E5FF] text-[#00E5FF] step-pulse'
-                        : 'border-white/15 text-gray-600'
+                        ? 'border-[#00E5FF] text-[#00E5FF] bg-[#00E5FF]/5 shadow-[0_0_8px_rgba(0,229,255,0.2)]'
+                        : 'border-white/15 text-gray-500 bg-black'
                     }`}
                   >
                     {state === 'done' ? '✓' : idx}
                   </div>
                   <span
-                    className={`text-[9px] md:text-[10px] font-mono uppercase tracking-widest absolute -bottom-5 whitespace-nowrap ${
+                    className={`text-[9px] font-mono uppercase tracking-[0.2em] absolute -bottom-5 whitespace-nowrap ${
                       state === 'upcoming' ? 'text-gray-600' : 'text-gray-300'
                     }`}
                   >
@@ -501,7 +440,7 @@ export default function Register() {
                   </span>
                 </div>
                 {idx < STEP_LABELS.length && (
-                  <div className="flex-1 h-px mx-2 bg-white/10 relative overflow-hidden">
+                  <div className="flex-1 h-px mx-2 bg-white/10 relative">
                     <div
                       className="absolute inset-y-0 left-0 bg-[#00E5FF] transition-all duration-500"
                       style={{ width: idx < step ? '100%' : '0%' }}
@@ -513,55 +452,51 @@ export default function Register() {
           })}
         </div>
 
-        {/* Card */}
-        <div className={`w-full max-w-2xl glass-panel relative border-[#00E5FF]/20 shadow-[0_0_40px_rgba(0,229,255,0.06)] reg-reveal-delay ${mounted ? 'reg-reveal-in' : ''}`}>
-          <div className="reg-card-accent" />
+        {/* Form Panel */}
+        <div className={`w-full max-w-3xl bg-black/50 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden shadow-2xl relative reg-reveal-delay ${mounted ? 'reg-reveal-in' : ''}`}>
+          {/* Top Accent Line */}
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#00E5FF] to-transparent opacity-70" />
+          
           <div className="p-6 md:p-10">
             {error && <ErrorBanner message={error} />}
 
             <form
               onSubmit={
-                step === 1
-                  ? (e) => {
-                      e.preventDefault();
-                      setStep(2);
-                    }
-                  : step === 2
-                  ? requestOTP
-                  : verifyAndRegister
+                step === 1 ? (e) => { e.preventDefault(); setStep(2); }
+                  : step === 2 ? requestOTP : verifyAndRegister
               }
               key={step}
-              className="step-transition"
+              className="animate-step-fade"
             >
               {/* STEP 1: Details */}
               {step === 1 && (
-                <div className="space-y-6">
-                  {/* Team / Individual segmented toggle */}
-                  <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-8">
+                  
+                  {/* Segmented Control */}
+                  <div className="flex bg-white/5 border border-white/10 rounded-md p-1 max-w-xs mx-auto">
                     <button
                       type="button"
                       onClick={() => setType('team')}
-                      className={`reg-toggle ${type === 'team' ? 'reg-toggle-active' : ''}`}
+                      className={`flex-1 py-2 text-xs font-mono tracking-widest uppercase rounded-sm transition-all duration-200 ${
+                        type === 'team' ? 'bg-[#00E5FF]/10 text-[#00E5FF] border border-[#00E5FF]/30 shadow-inner' : 'text-gray-400 hover:text-white border border-transparent'
+                      }`}
                     >
-                     
-                      <span>Team</span>
+                      Team
                     </button>
                     <button
                       type="button"
                       onClick={() => setType('individual')}
-                      className={`reg-toggle ${type === 'individual' ? 'reg-toggle-active' : ''}`}
+                      className={`flex-1 py-2 text-xs font-mono tracking-widest uppercase rounded-sm transition-all duration-200 ${
+                        type === 'individual' ? 'bg-[#00E5FF]/10 text-[#00E5FF] border border-[#00E5FF]/30 shadow-inner' : 'text-gray-400 hover:text-white border border-transparent'
+                      }`}
                     >
-                      <span>Individual</span>
+                      Individual
                     </button>
                   </div>
 
-                  <FieldSelect
-                    label="University"
-                    value={university}
-                    onChange={(e) => setUniversity(e.target.value)}
-                  >
+                  <FieldSelect label="University" value={university} onChange={(e) => setUniversity(e.target.value)}>
                     {UNIVERSITIES.map((u) => (
-                      <option key={u} value={u} className="bg-[#05080C]">
+                      <option key={u} value={u} className="bg-[#05080C] text-white">
                         {u}
                       </option>
                     ))}
@@ -575,12 +510,11 @@ export default function Register() {
                       value={otherUniversity}
                       onChange={(e) => setOtherUniversity(e.target.value)}
                       required
-                      className="animate-fade-in"
                     />
                   )}
 
                   {type === 'team' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                       <FieldInput
                         label="Team Name"
                         type="text"
@@ -588,17 +522,23 @@ export default function Register() {
                         onChange={(e) => setTeamName(e.target.value)}
                         required
                       />
-                      <div className="reg-field">
-                        <label className="reg-label">Team Size</label>
-                        <div className="grid grid-cols-2 gap-2">
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[10px] font-mono tracking-widest text-[#00E5FF]/80 uppercase h-[14px]">
+                          Team Size
+                        </label>
+                        <div className="flex gap-3 h-[44px]">
                           {[2, 3].map((n) => (
                             <button
                               key={n}
                               type="button"
                               onClick={() => setMemberCount(n)}
-                              className={`reg-pill ${memberCount === n ? 'reg-pill-active' : ''}`}
+                              className={`flex-1 border rounded-md text-sm font-medium transition-all duration-200 ${
+                                memberCount === n
+                                  ? 'bg-[#00E5FF]/10 border-[#00E5FF]/60 text-[#00E5FF]'
+                                  : 'bg-black/40 border-white/10 text-gray-400 hover:border-white/30'
+                              }`}
                             >
-                              {n} members
+                              {n} Members
                             </button>
                           ))}
                         </div>
@@ -606,102 +546,45 @@ export default function Register() {
                     </div>
                   )}
 
-                  <div className="reg-subcard">
-                    <h3 className="reg-subcard-title">
-                      <span className="reg-avatar">L</span>
-                      {type === 'team' ? 'Team Leader Details' : 'Your Details'}
+                  {/* Leader Subcard */}
+                  <div className="bg-white/[0.02] border border-white/5 p-6 rounded-lg">
+                    <h3 className="flex items-center gap-3 text-xs font-mono tracking-widest uppercase text-[#00E5FF] mb-6">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-sm bg-[#00E5FF]/20 border border-[#00E5FF]/50 text-[10px]">L</span>
+                      {type === 'team' ? 'Team Leader Details' : 'Agent Details'}
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <FieldInput
-                        label="First Name"
-                        type="text"
-                        placeholder="Niranga"
-                        value={leader.firstName}
-                        onChange={(e) => setLeader({ ...leader, firstName: e.target.value })}
-                        required
-                      />
-                      <FieldInput
-                        label="Last Name"
-                        type="text"
-                        placeholder="Nayanajith"
-                        value={leader.lastName}
-                        onChange={(e) => setLeader({ ...leader, lastName: e.target.value })}
-                        required
-                      />
-                      <FieldInput
-                        label="ID Card Number (NIC)"
-                        type="text"
-                        placeholder="200012345678"
-                        value={leader.idCard}
-                        onChange={(e) => setLeader({ ...leader, idCard: e.target.value })}
-                        required
-                      />
-                      <FieldInput
-                        label="WhatsApp Number"
-                        type="tel"
-                        placeholder="+94 7X XXX XXXX"
-                        value={leader.phone}
-                        onChange={(e) => setLeader({ ...leader, phone: e.target.value })}
-                        required
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <FieldInput label="First Name" type="text" placeholder="Niranga" value={leader.firstName} onChange={(e) => setLeader({ ...leader, firstName: e.target.value })} required />
+                      <FieldInput label="Last Name" type="text" placeholder="Nayanajith" value={leader.lastName} onChange={(e) => setLeader({ ...leader, lastName: e.target.value })} required />
+                      <FieldInput label="ID Card Number (NIC)" type="text" placeholder="200012345678" value={leader.idCard} onChange={(e) => setLeader({ ...leader, idCard: e.target.value })} required />
+                      <FieldInput label="WhatsApp Number" type="tel" placeholder="+94 7X XXX XXXX" value={leader.phone} onChange={(e) => setLeader({ ...leader, phone: e.target.value })} required />
                     </div>
                   </div>
 
+                  {/* Teammates */}
                   {type === 'team' &&
                     Array.from({ length: memberCount - 1 }).map((_, index) => (
-                      <div key={index} className="reg-subcard">
-                        <h3 className="reg-subcard-title reg-subcard-title-muted">
-                          <span className="reg-avatar reg-avatar-muted">{index + 2}</span>
+                      <div key={index} className="bg-black/30 border border-white/5 p-6 rounded-lg">
+                        <h3 className="flex items-center gap-3 text-xs font-mono tracking-widest uppercase text-gray-400 mb-6">
+                          <span className="flex items-center justify-center w-5 h-5 rounded-sm bg-white/10 border border-white/20 text-[10px]">{index + 2}</span>
                           Teammate {index + 1}
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                          <FieldInput
-                            label="First Name"
-                            type="text"
-                            value={members[index].firstName}
-                            onChange={(e) => {
-                              const newM = [...members];
-                              newM[index].firstName = e.target.value;
-                              setMembers(newM);
-                            }}
-                            required
-                          />
-                          <FieldInput
-                            label="Last Name"
-                            type="text"
-                            value={members[index].lastName}
-                            onChange={(e) => {
-                              const newM = [...members];
-                              newM[index].lastName = e.target.value;
-                              setMembers(newM);
-                            }}
-                            required
-                          />
-                          <FieldInput
-                            label="ID Card (NIC)"
-                            type="text"
-                            value={members[index].idCard}
-                            onChange={(e) => {
-                              const newM = [...members];
-                              newM[index].idCard = e.target.value;
-                              setMembers(newM);
-                            }}
-                            required
-                          />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <FieldInput label="First Name" type="text" value={members[index].firstName} onChange={(e) => { const newM = [...members]; newM[index].firstName = e.target.value; setMembers(newM); }} required />
+                          <FieldInput label="Last Name" type="text" value={members[index].lastName} onChange={(e) => { const newM = [...members]; newM[index].lastName = e.target.value; setMembers(newM); }} required />
+                          <FieldInput label="ID Card (NIC)" type="text" value={members[index].idCard} onChange={(e) => { const newM = [...members]; newM[index].idCard = e.target.value; setMembers(newM); }} required />
                         </div>
                       </div>
                     ))}
 
-                  {/* Ambassador Code (optional) with live lookup */}
-                  <div className="reg-subcard" style={{ borderColor: 'rgba(167, 139, 250, 0.2)', background: 'rgba(124, 58, 237, 0.04)' }}>
-                    <h3 className="reg-subcard-title" style={{ color: '#A78BFA' }}>
-                      <span className="reg-avatar" style={{ background: 'rgba(167,139,250,0.15)', borderColor: 'rgba(167,139,250,0.4)', color: '#A78BFA' }}>🎖</span>
+                  {/* Ambassador Section */}
+                  <div className="bg-purple-900/10 border border-purple-500/20 p-6 rounded-lg">
+                    <h3 className="flex items-center gap-3 text-xs font-mono tracking-widest uppercase text-purple-400 mb-6">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-sm bg-purple-500/20 border border-purple-500/50 text-[10px]">🎖</span>
                       Ambassador Referral (Optional)
                     </h3>
 
-                    {/* Input row */}
-                    <div className="reg-field">
-                      <label className="reg-label" style={{ color: 'rgba(167,139,250,0.75)' }}>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[10px] font-mono tracking-widest text-purple-300/70 uppercase">
                         Ambassador Code
                       </label>
                       <div className="relative">
@@ -710,214 +593,99 @@ export default function Register() {
                           placeholder="e.g. InnovaX2026##"
                           value={ambassadorCode}
                           onChange={(e) => setAmbassadorCode(e.target.value)}
-                          className="reg-input pr-10"
-                          style={{
-                            borderColor: ambassadorLookup
-                              ? 'rgba(74,222,128,0.6)'
-                              : ambassadorNotFound
-                              ? 'rgba(239,68,68,0.5)'
-                              : undefined,
-                          }}
+                          className={`w-full bg-black/40 border rounded-md px-4 py-2.5 text-sm text-white focus:outline-none transition-all duration-200 h-[44px] ${
+                            ambassadorLookup ? 'border-green-500/50 focus:border-green-400' : ambassadorNotFound ? 'border-red-500/50 focus:border-red-400' : 'border-purple-500/30 focus:border-purple-400 focus:bg-purple-500/5'
+                          }`}
                         />
-                        {/* Status icon inside input */}
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                          {ambassadorLookupLoading && (
-                            <svg className="animate-spin w-4 h-4 text-purple-400" viewBox="0 0 24 24" fill="none">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                            </svg>
-                          )}
-                          {!ambassadorLookupLoading && ambassadorLookup && (
-                            <svg className="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
-                          {!ambassadorLookupLoading && ambassadorNotFound && (
-                            <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          )}
+                          {ambassadorLookupLoading && <svg className="animate-spin w-4 h-4 text-purple-400" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>}
+                          {!ambassadorLookupLoading && ambassadorLookup && <svg className="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>}
+                          {!ambassadorLookupLoading && ambassadorNotFound && <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>}
                         </div>
                       </div>
-
-                      {/* Hint text */}
-                      {!ambassadorCode && (
-                        <p className="text-[10px] font-mono text-[var(--mist)]/60 mt-1.5">
-                          If a campus ambassador referred you, enter their code here.
-                        </p>
-                      )}
+                      {!ambassadorCode && <p className="text-[10px] font-mono text-purple-300/40 mt-1">Leave blank if you were not referred.</p>}
                     </div>
 
-                    {/* ✅ Found — confirmation card */}
                     {ambassadorLookup && (
-                      <div className="mt-3 animate-fade-in space-y-2">
-                        {/* "Is this your ambassador?" prompt */}
-                        <p className="text-[10px] font-mono tracking-widest uppercase text-purple-300/70">
-                          Is this your ambassador?
-                        </p>
-
-                        <div
-                          className="flex items-center gap-3 rounded-lg px-4 py-3"
-                          style={{ background: 'rgba(74,222,128,0.07)', border: '1px solid rgba(74,222,128,0.3)' }}
-                        >
-                          {/* Avatar */}
-                          <div
-                            className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-sm font-bold"
-                            style={{ background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.4)', color: '#4ade80' }}
-                          >
-                            {(ambassadorLookup.firstName?.[0] || '').toUpperCase()}
-                          </div>
-
-                          {/* Name + university */}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-green-400 text-xs font-bold tracking-wide">
-                              ✓ Ambassador Found
-                            </p>
-                            <p className="text-white text-sm font-bold truncate">
-                              {ambassadorLookup.firstName} {ambassadorLookup.lastName}
-                            </p>
-                            {ambassadorLookup.university && (
-                              <p className="text-gray-400 text-[10px] font-mono truncate">
-                                {ambassadorLookup.university}
-                              </p>
-                            )}
-                          </div>
+                      <div className="mt-4 flex items-center justify-between bg-green-500/10 border border-green-500/20 rounded-md p-3">
+                        <div>
+                          <p className="text-[10px] font-mono text-green-400 tracking-wider uppercase mb-1">Found Ambassador</p>
+                          <p className="text-sm font-semibold text-white">{ambassadorLookup.firstName} {ambassadorLookup.lastName}</p>
                         </div>
-
-                        {/* Confirm / Not my ambassador actions */}
-                        <div className="flex gap-2">
-                          {/* Confirm — visually "selected" state */}
-                          <div
-                            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 text-[11px] font-mono font-bold tracking-widest"
-                            style={{ background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.5)', color: '#4ade80' }}
-                          >
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                            </svg>
-                            YES, CONFIRMED
-                          </div>
-
-                          {/* Not my ambassador — clears the code */}
-                          <button
-                            type="button"
-                            onClick={() => setAmbassadorCode('')}
-                            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 text-[11px] font-mono font-bold tracking-widest transition-all"
-                            style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171' }}
-                          >
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                            NOT MINE
-                          </button>
-                        </div>
+                        <button type="button" onClick={() => setAmbassadorCode('')} className="text-xs font-mono text-red-400 hover:text-red-300 px-3 py-1.5 border border-red-500/30 rounded-sm bg-red-500/10 transition-colors">
+                          CLEAR
+                        </button>
                       </div>
                     )}
 
-                    {/* ❌ Not found warning */}
                     {ambassadorNotFound && (
-                      <div
-                        className="mt-3 flex items-center gap-3 rounded-lg px-4 py-3 animate-fade-in"
-                        style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.3)' }}
-                      >
-                        <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                        </svg>
-                        <p className="text-red-400 text-xs font-mono">
-                          No ambassador found with code <strong>{ambassadorCode}</strong>. Double-check the code or leave it empty.
-                        </p>
-                      </div>
+                      <p className="mt-3 text-[11px] font-mono text-red-400 flex items-center gap-2">
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+                        Invalid code. Please verify or clear the field.
+                      </p>
                     )}
                   </div>
 
-                  <button type="submit" className="btn-solid-cyan w-full justify-center mt-2">
-                    <span className="flex items-center gap-3 justify-center">
-                      Continue to Credentials
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </svg>
-                    </span>
+                  <button type="submit" className="w-full bg-[#00E5FF]/10 border border-[#00E5FF]/50 text-[#00E5FF] hover:bg-[#00E5FF] hover:text-black font-mono font-bold tracking-widest text-xs uppercase py-3.5 rounded-md transition-all duration-300 flex items-center justify-center gap-3 mt-4">
+                    Proceed to Credentials
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                   </button>
                 </div>
               )}
 
               {/* STEP 2: Credentials */}
               {step === 2 && (
-                <div className="space-y-5">
-                  <h3 className="text-sm text-[#00E5FF] mb-2 font-bold tracking-widest text-center uppercase">
-                    Create Portal Account
-                  </h3>
-                  <p className="text-xs text-[var(--mist)] text-center mb-6">
-                    This becomes your login for the InnovaX dashboard.
-                  </p>
+                <div className="space-y-6 md:px-8 py-4">
+                  <div className="text-center mb-8">
+                    <h3 className="text-sm text-[#00E5FF] mb-2 font-mono font-bold tracking-widest uppercase">Set Access Credentials</h3>
+                    <p className="text-xs text-[var(--mist)]/70">Establish your secure login for the portal.</p>
+                  </div>
 
                   <FieldInput
                     label="Email Address"
-                    icon={
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
-                    }
                     type="email"
                     placeholder="agent@innovax.io"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    autoComplete="email"
                   />
 
                   <div className="relative">
                     <FieldInput
                       label="Password"
-                      icon={
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                      }
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       minLength={6}
                       required
-                      autoComplete="new-password"
-                      hint="Minimum 6 characters"
+                      hint="Minimum 6 characters required."
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword((s) => !s)}
-                      className="absolute right-3.5 top-[38px] text-gray-500 hover:text-[#00E5FF] transition-colors"
+                      className="absolute right-3.5 top-[34px] text-gray-500 hover:text-[#00E5FF] transition-colors"
                       tabIndex={-1}
                     >
                       {showPassword ? (
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                        </svg>
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" /></svg>
                       ) : (
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                       )}
                     </button>
                   </div>
 
-                  <div className="flex gap-4 pt-4">
+                  <div className="flex gap-4 pt-6">
                     <button
                       type="button"
                       onClick={() => setStep(1)}
-                      className="btn-outline-cyan w-1/3 justify-center"
+                      className="w-1/3 border border-white/20 text-white/70 hover:bg-white/5 hover:text-white font-mono text-xs uppercase tracking-widest rounded-md py-3.5 transition-all"
                     >
                       Back
                     </button>
-                    <button type="submit" disabled={loading} className="btn-solid-cyan w-2/3 justify-center">
+                    <button type="submit" disabled={loading} className="w-2/3 bg-[#00E5FF]/10 border border-[#00E5FF]/50 text-[#00E5FF] hover:bg-[#00E5FF] hover:text-black font-mono font-bold tracking-widest text-xs uppercase py-3.5 rounded-md transition-all duration-300 flex items-center justify-center">
                       {loading ? (
-                        <span className="flex items-center gap-3 justify-center">
-                          <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                          </svg>
-                          Sending code...
-                        </span>
+                        <span className="flex items-center gap-3"><svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg> TRANSMITTING...</span>
                       ) : (
                         'Verify Email'
                       )}
@@ -926,37 +694,32 @@ export default function Register() {
                 </div>
               )}
 
-              {/* STEP 3: OTP Verification */}
+              {/* STEP 3: Verify */}
               {step === 3 && (
-                <div className="text-center">
-                  <div className="w-14 h-14 mx-auto mb-5 rounded-full bg-[#00E5FF]/10 border border-[#00E5FF]/30 flex items-center justify-center">
-                    <svg className="w-6 h-6 text-[#00E5FF]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="text-center md:px-8 py-4">
+                  <div className="w-12 h-12 mx-auto mb-6 rounded-sm bg-[#00E5FF]/10 border border-[#00E5FF]/40 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-[#00E5FF]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
-                  <h3 className="text-sm text-[#00E5FF] mb-2 font-bold tracking-widest uppercase">
-                    Enter Access Code
-                  </h3>
-                  <p className="text-xs text-[var(--mist)] mb-7">
-                    A 6-digit code has been sent to
-                    <br />
-                    <strong className="text-white">{email}</strong>
+                  <h3 className="text-sm text-[#00E5FF] mb-2 font-mono font-bold tracking-widest uppercase">Authorization Code</h3>
+                  <p className="text-xs text-[var(--mist)]/70 mb-8 leading-relaxed">
+                    A 6-digit access token has been deployed to<br />
+                    <strong className="text-white font-mono mt-1 inline-block">{email}</strong>
                   </p>
 
-                  <div className="flex justify-center gap-2 mb-6" onPaste={handleOtpPaste}>
+                  <div className="flex justify-center gap-2 sm:gap-3 mb-8" onPaste={handleOtpPaste}>
                     {otpDigits.map((digit, i) => (
                       <input
                         key={i}
-                        ref={(el) => {
-                          otpRefs.current[i] = el;
-                        }}
+                        ref={(el) => { otpRefs.current[i] = el; }}
                         type="text"
                         inputMode="numeric"
                         maxLength={1}
                         value={digit}
                         onChange={(e) => handleOtpChange(i, e.target.value)}
                         onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                        className="reg-otp-box"
+                        className="w-10 h-12 sm:w-12 sm:h-14 text-center text-lg font-mono font-bold text-white bg-black/40 border border-white/20 rounded-md focus:border-[#00E5FF] focus:bg-[#00E5FF]/5 focus:shadow-[0_0_10px_rgba(0,229,255,0.2)] outline-none transition-all"
                       />
                     ))}
                   </div>
@@ -964,34 +727,23 @@ export default function Register() {
                   <button
                     type="submit"
                     disabled={loading || userOTP.length < 6}
-                    className="w-full btn-solid-cyan justify-center"
+                    className="w-full bg-[#00E5FF]/10 border border-[#00E5FF]/50 text-[#00E5FF] hover:bg-[#00E5FF] hover:text-black disabled:opacity-50 disabled:hover:bg-[#00E5FF]/10 disabled:hover:text-[#00E5FF] font-mono font-bold tracking-widest text-xs uppercase py-4 rounded-md transition-all duration-300 flex items-center justify-center"
                   >
                     {loading ? (
-                      <span className="flex items-center gap-3 justify-center">
-                        <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        Verifying...
-                      </span>
+                      <span className="flex items-center gap-3"><svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg> AUTHENTICATING...</span>
                     ) : (
                       'Finalize Registration'
                     )}
                   </button>
 
-                  <div className="mt-7 pt-6 border-t border-white/10">
+                  <div className="mt-8 pt-6 border-t border-white/10">
                     {cooldown > 0 ? (
-                      <p className="text-xs text-gray-500 font-mono">
-                        Resend code available in {Math.floor(cooldown / 60)}:{(cooldown % 60).toString().padStart(2, '0')}
+                      <p className="text-xs text-gray-500 font-mono tracking-widest uppercase">
+                        Resend in {Math.floor(cooldown / 60)}:{(cooldown % 60).toString().padStart(2, '0')}
                       </p>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={requestOTP}
-                        disabled={loading}
-                        className="text-xs text-[#00E5FF] hover:text-white transition-colors underline decoration-[#00E5FF]/30 underline-offset-4"
-                      >
-                        Resend access code
+                      <button type="button" onClick={requestOTP} disabled={loading} className="text-xs font-mono tracking-widest uppercase text-[#00E5FF]/70 hover:text-[#00E5FF] transition-colors underline decoration-[#00E5FF]/30 underline-offset-4">
+                        Resend Token
                       </button>
                     )}
                   </div>
@@ -1001,15 +753,15 @@ export default function Register() {
           </div>
         </div>
 
-        <p className={`text-xs text-[var(--mist)] tracking-[0.15em] uppercase text-center mt-8 reg-reveal-delay ${mounted ? 'reg-reveal-in' : ''}`}>
-          Already registered?{' '}
+        <p className={`text-[10px] md:text-xs text-[var(--mist)]/70 tracking-[0.15em] uppercase text-center mt-8 reg-reveal-delay ${mounted ? 'reg-reveal-in' : ''}`}>
+          Already initialized?{' '}
           <Link href="/login" className="text-[#00E5FF] hover:text-white transition-colors font-bold ml-1">
-            Sign in
+            Access Portal
           </Link>
         </p>
 
-        <div className={`text-center mt-6 reg-reveal-delay ${mounted ? 'reg-reveal-in' : ''}`}>
-          <span className="font-mono text-[9px] tracking-[0.3em] text-[var(--mist)]/40 uppercase">
+        <div className={`text-center mt-12 reg-reveal-delay ${mounted ? 'reg-reveal-in' : ''}`}>
+          <span className="font-mono text-[9px] tracking-[0.4em] text-white/30 uppercase">
             InnovaX 1.0 · IEEE CS SUSL
           </span>
         </div>
@@ -1019,7 +771,7 @@ export default function Register() {
         .reg-reveal,
         .reg-reveal-delay {
           opacity: 0;
-          transform: translateY(-8px);
+          transform: translateY(10px);
           transition: opacity 0.6s ease-out, transform 0.6s ease-out;
         }
         .reg-reveal-delay {
@@ -1029,201 +781,22 @@ export default function Register() {
           opacity: 1;
           transform: translateY(0);
         }
-
-        .step-transition {
-          animation: stepFade 0.3s ease-out both;
+        
+        .animate-step-fade {
+          animation: stepFade 0.3s ease-out forwards;
         }
+        
         @keyframes stepFade {
-          from {
-            opacity: 0;
-            transform: translateY(6px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .step-pulse {
-          animation: stepPulse 2s infinite;
-        }
-        @keyframes stepPulse {
-          0% {
-            box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.5);
-          }
-          70% {
-            box-shadow: 0 0 0 8px rgba(0, 229, 255, 0);
-          }
-          100% {
-            box-shadow: 0 0 0 0 rgba(0, 229, 255, 0);
-          }
-        }
-
-        .glass-panel {
-          backdrop-filter: blur(18px);
-          -webkit-backdrop-filter: blur(18px);
-          background: rgba(8, 14, 20, 0.78);
-          box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
-        }
-
-        .reg-card-accent {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 2px;
-          background: linear-gradient(90deg, transparent, #00e5ff, transparent);
-        }
-
-        .reg-field {
-          position: relative;
-          text-align: left;
-        }
-        .reg-label {
-          display: flex;
-          align-items: center;
-          gap: 0.4rem;
-          font-size: 10px;
-          letter-spacing: 0.18em;
-          text-transform: uppercase;
-          color: rgba(0, 229, 255, 0.75);
-          margin-bottom: 0.5rem;
-          font-family: var(--font-mono, monospace);
-        }
-        .reg-input {
-          width: 100%;
-          background: rgba(18, 24, 34, 0.5);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 0.5rem;
-          padding: 0.75rem 0.9rem;
-          color: white;
-          font-size: 0.875rem;
-          transition: border-color 0.25s ease;
-        }
-        .reg-input:focus {
-          outline: none;
-          border-color: #00e5ff;
-        }
-        .reg-select {
-          appearance: none;
-          padding-right: 2.25rem;
-          cursor: pointer;
-        }
-        .reg-input-glow {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          height: 1px;
-          width: 0%;
-          background: #00e5ff;
-          box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
-          transition: width 0.3s ease;
-        }
-        .reg-input-glow.glow-on {
-          width: 100%;
-        }
-
-        .reg-toggle {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.6rem;
-          padding: 0.85rem;
-          border-radius: 0.6rem;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          color: #9ca3af;
-          font-weight: 700;
-          letter-spacing: 0.1em;
-          font-size: 0.8rem;
-          text-transform: uppercase;
-          transition: all 0.2s ease;
-          background: rgba(18, 24, 34, 0.3);
-        }
-        .reg-toggle-active {
-          background: rgba(0, 229, 255, 0.12);
-          border-color: #00e5ff;
-          color: #00e5ff;
-          box-shadow: 0 0 16px rgba(0, 229, 255, 0.12);
-        }
-
-        .reg-pill {
-          padding: 0.75rem;
-          border-radius: 0.5rem;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          color: #9ca3af;
-          font-size: 0.75rem;
-          font-family: var(--font-mono, monospace);
-          background: rgba(18, 24, 34, 0.3);
-          transition: all 0.2s ease;
-        }
-        .reg-pill-active {
-          background: rgba(0, 229, 255, 0.12);
-          border-color: #00e5ff;
-          color: #00e5ff;
-        }
-
-        .reg-subcard {
-          padding: 1.25rem;
-          border: 1px solid #121822;
-          border-radius: 0.75rem;
-          background: rgba(5, 8, 12, 0.5);
-        }
-        .reg-subcard-title {
-          display: flex;
-          align-items: center;
-          gap: 0.6rem;
-          font-size: 0.8rem;
-          color: #00e5ff;
-          font-weight: 700;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          margin-bottom: 1.1rem;
-        }
-        .reg-subcard-title-muted {
-          color: #9ca3af;
-        }
-        .reg-avatar {
-          width: 1.5rem;
-          height: 1.5rem;
-          border-radius: 9999px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 0.65rem;
-          background: rgba(0, 229, 255, 0.15);
-          border: 1px solid rgba(0, 229, 255, 0.4);
-          color: #00e5ff;
-        }
-        .reg-avatar-muted {
-          background: rgba(255, 255, 255, 0.06);
-          border-color: rgba(255, 255, 255, 0.15);
-          color: #9ca3af;
-        }
-
-        .reg-otp-box {
-          width: 2.75rem;
-          height: 3.25rem;
-          text-align: center;
-          font-size: 1.4rem;
-          font-family: var(--font-mono, monospace);
-          color: #00e5ff;
-          background: rgba(18, 24, 34, 0.5);
-          border: 1px solid rgba(0, 229, 255, 0.3);
-          border-radius: 0.6rem;
-          transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-        .reg-otp-box:focus {
-          outline: none;
-          border-color: #00e5ff;
-          box-shadow: 0 0 12px rgba(0, 229, 255, 0.35);
+          from { opacity: 0; transform: translateY(5px); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .reg-reveal,
-          .reg-reveal-delay,
-          .step-transition,
-          .step-pulse {
+          .reg-reveal, .reg-reveal-delay, .animate-step-fade {
             animation: none !important;
+            transition: none !important;
+            opacity: 1 !important;
+            transform: none !important;
           }
         }
       `}</style>
