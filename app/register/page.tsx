@@ -201,6 +201,10 @@ export default function Register() {
   ]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [ambassadorCode, setAmbassadorCode] = useState('');
+  const [ambassadorLookup, setAmbassadorLookup] = useState<{ firstName: string; lastName: string; university: string } | null>(null);
+  const [ambassadorLookupLoading, setAmbassadorLookupLoading] = useState(false);
+  const [ambassadorNotFound, setAmbassadorNotFound] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   // OTP state
@@ -210,7 +214,51 @@ export default function Register() {
 
   useEffect(() => {
     setMounted(true);
+    // Pre-fill ambassador code from ?ref= URL param — preserve exact case
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) setAmbassadorCode(ref);
   }, []);
+
+  // Debounced live ambassador code lookup
+  useEffect(() => {
+    const code = ambassadorCode.trim();
+    if (!code) {
+      setAmbassadorLookup(null);
+      setAmbassadorNotFound(false);
+      setAmbassadorLookupLoading(false);
+      return;
+    }
+
+    setAmbassadorLookupLoading(true);
+    setAmbassadorLookup(null);
+    setAmbassadorNotFound(false);
+
+    const timer = setTimeout(async () => {
+      try {
+        const snap = await getDoc(doc(db, 'ambassadors', code));
+        if (snap.exists()) {
+          const data = snap.data();
+          setAmbassadorLookup({
+            firstName: data.firstName || '',
+            lastName: data.lastName || '',
+            university: data.university || '',
+          });
+          setAmbassadorNotFound(false);
+        } else {
+          setAmbassadorLookup(null);
+          setAmbassadorNotFound(true);
+        }
+      } catch {
+        setAmbassadorLookup(null);
+        setAmbassadorNotFound(false);
+      } finally {
+        setAmbassadorLookupLoading(false);
+      }
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [ambassadorCode]);
 
   useEffect(() => {
     const fallbackTimer = setTimeout(() => {
@@ -292,6 +340,7 @@ export default function Register() {
 
       const finalUniversity = university === 'Other' ? otherUniversity : university;
       const teammates = type === 'team' ? members.slice(0, memberCount - 1) : [];
+      const trimmedCode = ambassadorCode.trim();
 
       await setDoc(doc(db, 'registrations', user.uid), {
         uid: user.uid,
@@ -307,7 +356,22 @@ export default function Register() {
         selectedForRound2: false,
         prototypeLink: '',
         isFinalist: false,
+        ambassadorCode: trimmedCode || null,
       });
+
+      // If a valid ambassador code was provided, increment their delegateCount
+      if (trimmedCode) {
+        try {
+          const ambRef = doc(db, 'ambassadors', trimmedCode);
+          const ambSnap = await getDoc(ambRef);
+          if (ambSnap.exists()) {
+            const currentCount = ambSnap.data().delegateCount || 0;
+            await setDoc(ambRef, { delegateCount: currentCount + 1 }, { merge: true });
+          }
+        } catch {
+          // Non-blocking: if ambassador increment fails, registration still succeeds
+        }
+      }
 
       router.push('/dashboard');
     } catch (err: any) {
@@ -468,7 +532,7 @@ export default function Register() {
                       onClick={() => setType('team')}
                       className={`reg-toggle ${type === 'team' ? 'reg-toggle-active' : ''}`}
                     >
-                      <span className="text-lg">👥</span>
+                     
                       <span>Team</span>
                     </button>
                     <button
@@ -476,7 +540,6 @@ export default function Register() {
                       onClick={() => setType('individual')}
                       className={`reg-toggle ${type === 'individual' ? 'reg-toggle-active' : ''}`}
                     >
-                      <span className="text-lg">🧑</span>
                       <span>Individual</span>
                     </button>
                   </div>
@@ -541,7 +604,7 @@ export default function Register() {
                       <FieldInput
                         label="First Name"
                         type="text"
-                        placeholder="Amara"
+                        placeholder="Niranga"
                         value={leader.firstName}
                         onChange={(e) => setLeader({ ...leader, firstName: e.target.value })}
                         required
@@ -549,7 +612,7 @@ export default function Register() {
                       <FieldInput
                         label="Last Name"
                         type="text"
-                        placeholder="Perera"
+                        placeholder="Nayanajith"
                         value={leader.lastName}
                         onChange={(e) => setLeader({ ...leader, lastName: e.target.value })}
                         required
@@ -617,6 +680,143 @@ export default function Register() {
                         </div>
                       </div>
                     ))}
+
+                  {/* Ambassador Code (optional) with live lookup */}
+                  <div className="reg-subcard" style={{ borderColor: 'rgba(167, 139, 250, 0.2)', background: 'rgba(124, 58, 237, 0.04)' }}>
+                    <h3 className="reg-subcard-title" style={{ color: '#A78BFA' }}>
+                      <span className="reg-avatar" style={{ background: 'rgba(167,139,250,0.15)', borderColor: 'rgba(167,139,250,0.4)', color: '#A78BFA' }}>🎖</span>
+                      Ambassador Referral (Optional)
+                    </h3>
+
+                    {/* Input row */}
+                    <div className="reg-field">
+                      <label className="reg-label" style={{ color: 'rgba(167,139,250,0.75)' }}>
+                        Ambassador Code
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="e.g. InnovaX2026##"
+                          value={ambassadorCode}
+                          onChange={(e) => setAmbassadorCode(e.target.value)}
+                          className="reg-input pr-10"
+                          style={{
+                            borderColor: ambassadorLookup
+                              ? 'rgba(74,222,128,0.6)'
+                              : ambassadorNotFound
+                              ? 'rgba(239,68,68,0.5)'
+                              : undefined,
+                          }}
+                        />
+                        {/* Status icon inside input */}
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                          {ambassadorLookupLoading && (
+                            <svg className="animate-spin w-4 h-4 text-purple-400" viewBox="0 0 24 24" fill="none">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                          )}
+                          {!ambassadorLookupLoading && ambassadorLookup && (
+                            <svg className="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                          {!ambassadorLookupLoading && ambassadorNotFound && (
+                            <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Hint text */}
+                      {!ambassadorCode && (
+                        <p className="text-[10px] font-mono text-[var(--mist)]/60 mt-1.5">
+                          If a campus ambassador referred you, enter their code here.
+                        </p>
+                      )}
+                    </div>
+
+                    {/* ✅ Found — confirmation card */}
+                    {ambassadorLookup && (
+                      <div className="mt-3 animate-fade-in space-y-2">
+                        {/* "Is this your ambassador?" prompt */}
+                        <p className="text-[10px] font-mono tracking-widest uppercase text-purple-300/70">
+                          Is this your ambassador?
+                        </p>
+
+                        <div
+                          className="flex items-center gap-3 rounded-lg px-4 py-3"
+                          style={{ background: 'rgba(74,222,128,0.07)', border: '1px solid rgba(74,222,128,0.3)' }}
+                        >
+                          {/* Avatar */}
+                          <div
+                            className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-sm font-bold"
+                            style={{ background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.4)', color: '#4ade80' }}
+                          >
+                            {(ambassadorLookup.firstName?.[0] || '').toUpperCase()}
+                          </div>
+
+                          {/* Name + university */}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-green-400 text-xs font-bold tracking-wide">
+                              ✓ Ambassador Found
+                            </p>
+                            <p className="text-white text-sm font-bold truncate">
+                              {ambassadorLookup.firstName} {ambassadorLookup.lastName}
+                            </p>
+                            {ambassadorLookup.university && (
+                              <p className="text-gray-400 text-[10px] font-mono truncate">
+                                {ambassadorLookup.university}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Confirm / Not my ambassador actions */}
+                        <div className="flex gap-2">
+                          {/* Confirm — visually "selected" state */}
+                          <div
+                            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 text-[11px] font-mono font-bold tracking-widest"
+                            style={{ background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.5)', color: '#4ade80' }}
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                            </svg>
+                            YES, CONFIRMED
+                          </div>
+
+                          {/* Not my ambassador — clears the code */}
+                          <button
+                            type="button"
+                            onClick={() => setAmbassadorCode('')}
+                            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 text-[11px] font-mono font-bold tracking-widest transition-all"
+                            style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171' }}
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            NOT MINE
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ❌ Not found warning */}
+                    {ambassadorNotFound && (
+                      <div
+                        className="mt-3 flex items-center gap-3 rounded-lg px-4 py-3 animate-fade-in"
+                        style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.3)' }}
+                      >
+                        <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                        <p className="text-red-400 text-xs font-mono">
+                          No ambassador found with code <strong>{ambassadorCode}</strong>. Double-check the code or leave it empty.
+                        </p>
+                      </div>
+                    )}
+                  </div>
 
                   <button type="submit" className="btn-solid-cyan w-full justify-center mt-2">
                     <span className="flex items-center gap-3 justify-center">

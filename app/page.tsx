@@ -490,8 +490,9 @@ export default function Home() {
       idea into a working Agentic AI proposal.
     </p>
   </Reveal>
-
+          
   {/* EMBEDDED GUIDEBOOK */}
+  <script src="//static.anyflip.com/plugin/LightBox/js/anyflp-light-box-api-min.js"></script>
   <Reveal className="w-full flex flex-col items-center max-w-5xl mx-auto px-2 sm:px-4">
     {/* Terminal / Cyber Header Bar */}
     <div className="w-full bg-[#0a1018] border border-[#00E5FF]/30 rounded-t-xl sm:rounded-t-2xl px-3 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between shadow-[0_0_30px_rgba(0,229,255,0.1)]">
@@ -530,7 +531,6 @@ export default function Home() {
       <div className="w-full h-[360px] sm:h-[460px] md:h-[540px] lg:h-[600px] rounded-lg sm:rounded-xl overflow-hidden bg-black/60 relative">
         <iframe
           src="https://online.anyflip.com/xrsxp/xepc/index.html"
-          allowFullScreen={true}
           title="InnovaX Delegate Booklet"
           className="w-full h-full border-0"
           style={{ width: '100%', height: '100%' }}
@@ -615,7 +615,7 @@ export default function Home() {
           />
         </div>
         <p className="text-xl sm:text-2xl font-bold text-[#00E5FF] mt-4">
-          LKR 30,000
+          LKR 20,000
         </p>
       </div>
     </Reveal>
@@ -637,7 +637,7 @@ export default function Home() {
         </div>
 
         <p className="text-2xl sm:text-3xl font-black text-[var(--gold)] relative z-10 mt-4">
-          LKR 50,000
+          LKR 30,000
         </p>
       </div>
     </Reveal>
@@ -656,7 +656,7 @@ export default function Home() {
           />
         </div>
         <p className="text-xl sm:text-2xl font-bold text-[#00E5FF] mt-4">
-          LKR 20,000
+          LKR 10,000
         </p>
       </div>
     </Reveal>

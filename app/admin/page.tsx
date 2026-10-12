@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, getDocs, doc, getDoc, setDoc, onSnapshot, updateDoc } from 'firebase/firestore';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { extractAmbassadorsFromCSV, type ParsedAmbassador } from '@/lib/csv';
+import { exportToExcel, exportToPDF } from '@/lib/export';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -20,12 +22,32 @@ export default function AdminDashboard() {
   const [p1Deadline, setP1Deadline] = useState('');
   const [p2Deadline, setP2Deadline] = useState('');
 
+  // --- Ambassador Registration State ---
+  const [showAmbassadorPanel, setShowAmbassadorPanel] = useState(true);
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [parsedAmbassadors, setParsedAmbassadors] = useState<ParsedAmbassador[]>([]);
+  const [csvErrors, setCsvErrors] = useState<string[]>([]);
+  const [ambassadorUploadStatus, setAmbassadorUploadStatus] = useState<'idle' | 'uploading' | 'done' | 'error'>('idle');
+  const [ambassadorEmailStatus, setAmbassadorEmailStatus] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
+  const [ambassadorUploadMsg, setAmbassadorUploadMsg] = useState('');
+  const [ambassadorEmailMsg, setAmbassadorEmailMsg] = useState('');
+  const csvInputRef = useRef<HTMLInputElement>(null);
+
   // --- Visibility Toggles ---
   const [showPhase1, setShowPhase1] = useState(false);
   const [showFinalists, setShowFinalists] = useState(false);
 
+  // --- Ambassador Report State ---
+  const [showAmbassadorReport, setShowAmbassadorReport] = useState(false);
+  const [ambassadorReport, setAmbassadorReport] = useState<any[]>([]);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [selectedAmbassador, setSelectedAmbassador] = useState<any | null>(null);
+
   // --- Detailed View State ---
   const [selectedUser, setSelectedUser] = useState<any>(null);
+
+  // --- Export State ---
+  const [exportBusy, setExportBusy] = useState<'excel' | 'pdf' | null>(null);
 
   // --- Security Confirmation Modal State ---
   const [confirmModal, setConfirmModal] = useState({
@@ -267,6 +289,128 @@ export default function AdminDashboard() {
     );
   };
 
+  // --- Ambassador CSV Handlers ---
+  const handleCsvFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCsvFile(file);
+    setParsedAmbassadors([]);
+    setCsvErrors([]);
+    setAmbassadorUploadStatus('idle');
+    setAmbassadorEmailStatus('idle');
+    setAmbassadorUploadMsg('');
+    setAmbassadorEmailMsg('');
+    const text = await file.text();
+    const { ambassadors, errors } = extractAmbassadorsFromCSV(text);
+    setParsedAmbassadors(ambassadors);
+    setCsvErrors(errors);
+  };
+
+  const handleSaveAmbassadors = () => {
+    if (parsedAmbassadors.length === 0) return alert('No valid ambassador records to save.');
+    requestAction(
+      'SAVE AMBASSADORS',
+      `Are you sure you want to save ${parsedAmbassadors.length} ambassador records to the database? (delegateCount will be set to 0 for new records)`,
+      async () => {
+        setAmbassadorUploadStatus('uploading');
+        setAmbassadorUploadMsg('');
+        try {
+          const res = await fetch('/api/save-ambassadors', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ambassadors: parsedAmbassadors }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            setAmbassadorUploadStatus('done');
+            setAmbassadorUploadMsg(`✓ ${data.count} ambassadors saved to database.`);
+          } else {
+            setAmbassadorUploadStatus('error');
+            setAmbassadorUploadMsg(`Error: ${data.error}`);
+          }
+        } catch (err: any) {
+          setAmbassadorUploadStatus('error');
+          setAmbassadorUploadMsg(`Critical error: ${err.message}`);
+        }
+      }
+    );
+  };
+
+  const handleSendAmbassadorEmails = () => {
+    if (parsedAmbassadors.length === 0) return alert('No ambassador records loaded. Please upload and save a CSV first.');
+    requestAction(
+      'SEND AMBASSADOR EMAILS',
+      `Are you sure you want to send ambassador appointment emails to all ${parsedAmbassadors.length} ambassadors? This will deliver their unique code and referral link.`,
+      async () => {
+        setAmbassadorEmailStatus('sending');
+        setAmbassadorEmailMsg('');
+        try {
+          const recipients = parsedAmbassadors.map(a => ({
+            email: a.email,
+            nameWithInitials: a.nameWithInitials,
+            firstName: a.firstName,
+            lastName: a.lastName,
+            ambassadorId: a.ambassadorId,
+            university: a.university,
+          }));
+          const res = await fetch('/api/send-ambassador-emails', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recipients }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            setAmbassadorEmailStatus('done');
+            setAmbassadorEmailMsg(`✓ Emails sent to ${data.count} ambassadors.`);
+          } else {
+            setAmbassadorEmailStatus('error');
+            setAmbassadorEmailMsg(`Error: ${data.error}`);
+          }
+        } catch (err: any) {
+          setAmbassadorEmailStatus('error');
+          setAmbassadorEmailMsg(`Critical error: ${err.message}`);
+        }
+      }
+    );
+  };
+
+  // --- Export Handlers ---
+  const handleExportExcel = async (dataset: 'all' | 'phase2' | 'finalists') => {
+    setExportBusy('excel');
+    try {
+      const dataMap = {
+        all: { users: allUsers, filename: 'InnovaX_All_Registrations' },
+        phase2: { users: allUsers.filter(u => u.selectedForRound2), filename: 'InnovaX_Phase2_Participants' },
+        finalists: { users: allUsers.filter(u => u.isFinalist), filename: 'InnovaX_Finalists' },
+      };
+      const { users, filename } = dataMap[dataset];
+      if (!users.length) return alert('No records in this dataset to export.');
+      await exportToExcel(users, filename);
+    } catch (err: any) {
+      alert('Excel export failed: ' + err.message);
+    } finally {
+      setExportBusy(null);
+    }
+  };
+
+  const handleExportPDF = async (dataset: 'all' | 'phase2' | 'finalists') => {
+    setExportBusy('pdf');
+    try {
+      const dataMap = {
+        all: { users: allUsers, title: 'All Registrations' },
+        phase2: { users: allUsers.filter(u => u.selectedForRound2), title: 'Phase 2 Participants' },
+        finalists: { users: allUsers.filter(u => u.isFinalist), title: 'Finalists' },
+      };
+      const { users, title } = dataMap[dataset];
+      if (!users.length) return alert('No records in this dataset to export.');
+      await exportToPDF(users, `InnovaX – ${title}`);
+    } catch (err: any) {
+      alert('PDF export failed: ' + err.message);
+    } finally {
+      setExportBusy(null);
+    }
+  };
+
   const handleLogout = () => {
     requestAction(
       "TERMINATE SESSION",
@@ -276,6 +420,35 @@ export default function AdminDashboard() {
         signOut(auth);
       }
     );
+  };
+
+  const fetchAmbassadorReport = async () => {
+    setReportLoading(true);
+    try {
+      // Load all ambassadors
+      const ambSnap = await getDocs(collection(db, 'ambassadors'));
+      const ambassadors = ambSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      // Load all registrations (already in allUsers, but re-fetch to be safe)
+      const regSnap = await getDocs(collection(db, 'registrations'));
+      const registrations = regSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
+
+      // For each ambassador, find their referrals
+      const report = ambassadors.map((amb: any) => {
+        const delegates = registrations.filter(
+          (r: any) => r.ambassadorCode && r.ambassadorCode.toUpperCase() === amb.ambassadorId?.toUpperCase()
+        );
+        return { ...amb, delegates };
+      });
+
+      // Sort by delegate count desc
+      report.sort((a, b) => (b.delegates?.length || 0) - (a.delegates?.length || 0));
+      setAmbassadorReport(report);
+    } catch (err: any) {
+      alert('Failed to load ambassador report: ' + err.message);
+    } finally {
+      setReportLoading(false);
+    }
   };
 
   if (loading) return <div className="min-h-screen bg-[#05080C] flex items-center justify-center text-[#00E5FF] font-mono tracking-widest">VERIFYING CLEARANCE...</div>;
@@ -509,7 +682,371 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="flex justify-between items-end mb-6 border-b border-[#121822] pb-4 flex-wrap gap-4">
+        {/* === AMBASSADOR REGISTRATION PANEL === */}
+        <div className="glass-panel border-[#7C3AED]/30 bg-[#121822]/50 p-6 mb-12">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-[#A78BFA] font-mono text-xs tracking-[0.2em] uppercase">
+              🎖️ Ambassador Registration
+            </h2>
+            <button
+              onClick={() => setShowAmbassadorPanel(!showAmbassadorPanel)}
+              className="text-xs font-mono tracking-widest uppercase border border-[#7C3AED]/50 text-[#A78BFA] hover:bg-[#7C3AED]/10 px-4 py-2 rounded transition-colors"
+            >
+              {showAmbassadorPanel ? 'COLLAPSE' : 'EXPAND'}
+            </button>
+          </div>
+
+          {showAmbassadorPanel && (
+            <div className="animate-fade-in">
+              {/* Step 1: Upload CSV */}
+              <div className="mb-6">
+                <p className="text-gray-500 font-mono text-[10px] uppercase tracking-widest mb-3">
+                  Step 1 — Upload Ambassador CSV
+                </p>
+                <p className="text-gray-600 font-mono text-[10px] mb-3 leading-relaxed">
+                  Expected columns (in order): Email Address · Name with Initials · First Name · Last Name · WhatsApp Number · University · Faculty · Year of Study · Ambassador ID
+                </p>
+                <div
+                  className="border-2 border-dashed border-[#7C3AED]/40 rounded-lg p-6 text-center cursor-pointer hover:border-[#7C3AED]/70 hover:bg-[#7C3AED]/5 transition-all"
+                  onClick={() => csvInputRef.current?.click()}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) {
+                      const syntheticEvent = { target: { files: e.dataTransfer.files } } as any;
+                      handleCsvFileChange(syntheticEvent);
+                    }
+                  }}
+                >
+                  <input
+                    ref={csvInputRef}
+                    type="file"
+                    accept=".csv,text/csv"
+                    className="hidden"
+                    onChange={handleCsvFileChange}
+                  />
+                  <p className="text-[#A78BFA] font-mono text-sm mb-1">
+                    {csvFile ? `📄 ${csvFile.name}` : '📂 Click or drag & drop a CSV file'}
+                  </p>
+                  <p className="text-gray-600 font-mono text-[10px]">
+                    {csvFile ? `${parsedAmbassadors.length} valid records · ${csvErrors.length} errors` : 'Supports header row detection'}
+                  </p>
+                </div>
+              </div>
+
+              {/* CSV Parse Errors */}
+              {csvErrors.length > 0 && (
+                <div className="mb-6 glass-panel border-red-500/20 bg-red-500/5 p-4 rounded">
+                  <p className="text-red-400 font-mono text-[10px] uppercase tracking-widest mb-2">⚠ Parse Warnings ({csvErrors.length})</p>
+                  <ul className="space-y-1">
+                    {csvErrors.map((err, i) => (
+                      <li key={i} className="text-red-400/70 font-mono text-[10px]">{err}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Preview Table */}
+              {parsedAmbassadors.length > 0 && (
+                <div className="mb-6">
+                  <p className="text-gray-500 font-mono text-[10px] uppercase tracking-widest mb-3">
+                    Preview — {parsedAmbassadors.length} Ambassador Records
+                  </p>
+                  <div className="overflow-x-auto rounded border border-[#7C3AED]/20">
+                    <table className="w-full text-left text-[11px] font-mono whitespace-nowrap">
+                      <thead className="bg-[#05080C] text-gray-500 uppercase tracking-wider">
+                        <tr>
+                          <th className="p-3 font-normal">#</th>
+                          <th className="p-3 font-normal">Amb. ID</th>
+                          <th className="p-3 font-normal">Name</th>
+                          <th className="p-3 font-normal">Email</th>
+                          <th className="p-3 font-normal">WhatsApp</th>
+                          <th className="p-3 font-normal">University</th>
+                          <th className="p-3 font-normal">Faculty</th>
+                          <th className="p-3 font-normal">Year</th>
+                          <th className="p-3 font-normal text-center text-green-500">Delegates</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {parsedAmbassadors.map((amb, idx) => (
+                          <tr key={idx} className="hover:bg-white/5 transition-colors">
+                            <td className="p-3 text-gray-600">{idx + 1}</td>
+                            <td className="p-3 text-[#A78BFA] font-bold tracking-widest">{amb.ambassadorId}</td>
+                            <td className="p-3 text-white">{amb.nameWithInitials || `${amb.firstName} ${amb.lastName}`}</td>
+                            <td className="p-3 text-gray-400">{amb.email}</td>
+                            <td className="p-3 text-gray-400">{amb.whatsapp}</td>
+                            <td className="p-3 text-gray-400 max-w-[160px] truncate">{amb.university}</td>
+                            <td className="p-3 text-gray-400">{amb.faculty}</td>
+                            <td className="p-3 text-gray-400">{amb.yearOfStudy}</td>
+                            <td className="p-3 text-center text-green-400 font-bold">0</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 2: Save to Database */}
+              {parsedAmbassadors.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-gray-500 font-mono text-[10px] uppercase tracking-widest mb-3">
+                    Step 2 — Save to Firestore Database
+                  </p>
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <button
+                      onClick={handleSaveAmbassadors}
+                      disabled={ambassadorUploadStatus === 'uploading'}
+                      className={`py-3 px-6 rounded text-xs font-bold tracking-widest uppercase transition-all ${
+                        ambassadorUploadStatus === 'done'
+                          ? 'bg-green-500/20 text-green-400 border border-green-500/50'
+                          : ambassadorUploadStatus === 'error'
+                          ? 'bg-red-500/20 text-red-400 border border-red-500/50'
+                          : ambassadorUploadStatus === 'uploading'
+                          ? 'bg-gray-800 text-gray-500 border border-gray-600 cursor-not-allowed'
+                          : 'bg-[#7C3AED]/20 text-[#A78BFA] border border-[#7C3AED]/50 hover:bg-[#7C3AED]/30'
+                      }`}
+                    >
+                      {ambassadorUploadStatus === 'uploading' ? '⏳ Saving...' : ambassadorUploadStatus === 'done' ? '✓ Saved!' : '💾 Save to Database'}
+                    </button>
+                    {ambassadorUploadMsg && (
+                      <p className={`font-mono text-[11px] ${ambassadorUploadStatus === 'done' ? 'text-green-400' : 'text-red-400'}`}>
+                        {ambassadorUploadMsg}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Send Emails */}
+              {parsedAmbassadors.length > 0 && (
+                <div>
+                  <p className="text-gray-500 font-mono text-[10px] uppercase tracking-widest mb-3">
+                    Step 3 — Send Ambassador Appointment Emails
+                  </p>
+                  <p className="text-gray-600 font-mono text-[10px] mb-3 leading-relaxed">
+                    Each ambassador will receive their unique Ambassador Code and personalized referral link via email.
+                  </p>
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <button
+                      onClick={handleSendAmbassadorEmails}
+                      disabled={ambassadorEmailStatus === 'sending'}
+                      className={`py-3 px-6 rounded text-xs font-bold tracking-widest uppercase transition-all ${
+                        ambassadorEmailStatus === 'done'
+                          ? 'bg-green-500/20 text-green-400 border border-green-500/50'
+                          : ambassadorEmailStatus === 'error'
+                          ? 'bg-red-500/20 text-red-400 border border-red-500/50'
+                          : ambassadorEmailStatus === 'sending'
+                          ? 'bg-gray-800 text-gray-500 border border-gray-600 cursor-not-allowed'
+                          : 'bg-[#121822] border border-[#7C3AED]/50 text-[#A78BFA] hover:bg-[#7C3AED]/10'
+                      }`}
+                    >
+                      {ambassadorEmailStatus === 'sending' ? '⏳ Sending...' : ambassadorEmailStatus === 'done' ? '✓ Emails Sent!' : `📧 Send Emails (${parsedAmbassadors.length})`}
+                    </button>
+                    {ambassadorEmailMsg && (
+                      <p className={`font-mono text-[11px] ${ambassadorEmailStatus === 'done' ? 'text-green-400' : 'text-red-400'}`}>
+                        {ambassadorEmailMsg}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* === AMBASSADOR DELEGATE REPORT === */}
+        <div className="glass-panel border-[#7C3AED]/20 bg-[#121822]/50 p-6 mb-12">
+          <div className="flex justify-between items-center flex-wrap gap-3">
+            <h2 className="text-[#A78BFA] font-mono text-xs tracking-[0.2em] uppercase">
+              📊 Ambassador Delegate Report
+            </h2>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  if (!showAmbassadorReport) {
+                    setShowAmbassadorReport(true);
+                    fetchAmbassadorReport();
+                  } else {
+                    setShowAmbassadorReport(false);
+                  }
+                }}
+                className="text-xs font-mono tracking-widest uppercase border border-[#7C3AED]/50 text-[#A78BFA] hover:bg-[#7C3AED]/10 px-4 py-2 rounded transition-colors"
+              >
+                {showAmbassadorReport ? 'COLLAPSE' : 'LOAD REPORT'}
+              </button>
+              {showAmbassadorReport && (
+                <button
+                  onClick={fetchAmbassadorReport}
+                  disabled={reportLoading}
+                  className="text-xs font-mono tracking-widest uppercase border border-gray-600 text-gray-400 hover:bg-gray-800 px-4 py-2 rounded transition-colors"
+                >
+                  {reportLoading ? '⏳ Refreshing...' : '↻ Refresh'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {showAmbassadorReport && (
+            <div className="mt-6 animate-fade-in">
+              {reportLoading ? (
+                <div className="text-center py-12 text-[#A78BFA] font-mono text-xs tracking-widest animate-pulse">
+                  LOADING AMBASSADOR DATA...
+                </div>
+              ) : ambassadorReport.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 font-mono text-xs">
+                  No ambassador records found. Upload a CSV in the Ambassador Registration panel first.
+                </div>
+              ) : (
+                <>
+                  {/* Summary Table */}
+                  <div className="overflow-x-auto rounded border border-[#7C3AED]/20 mb-6">
+                    <table className="w-full text-left text-sm font-mono whitespace-nowrap">
+                      <thead className="bg-[#05080C] text-gray-500 text-xs uppercase tracking-wider">
+                        <tr>
+                          <th className="p-4 font-normal">Ambassador ID</th>
+                          <th className="p-4 font-normal">Name</th>
+                          <th className="p-4 font-normal">University</th>
+                          <th className="p-4 font-normal text-center text-green-400">Delegates</th>
+                          <th className="p-4 font-normal text-center">Details</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {ambassadorReport.map((amb) => (
+                          <tr key={amb.id} className="hover:bg-white/5 transition-colors">
+                            <td className="p-4 text-[#A78BFA] font-bold tracking-widest">{amb.ambassadorId}</td>
+                            <td className="p-4 text-white">{amb.nameWithInitials || `${amb.firstName || ''} ${amb.lastName || ''}`.trim()}</td>
+                            <td className="p-4 text-gray-400 max-w-[200px] truncate">{amb.university || '—'}</td>
+                            <td className="p-4 text-center">
+                              <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                amb.delegates?.length > 0
+                                  ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                                  : 'bg-gray-800 text-gray-500 border border-gray-700'
+                              }`}>
+                                {amb.delegates?.length || 0}
+                              </span>
+                            </td>
+                            <td className="p-4 text-center">
+                              <button
+                                onClick={() => setSelectedAmbassador(amb)}
+                                disabled={!amb.delegates?.length}
+                                className="text-[10px] font-mono font-bold tracking-widest text-[#A78BFA] border border-[#7C3AED]/50 hover:bg-[#7C3AED]/10 px-3 py-1.5 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                              >
+                                VIEW
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Totals */}
+                  <div className="flex gap-6 text-xs font-mono">
+                    <span className="text-gray-500">
+                      Total Ambassadors: <span className="text-white font-bold">{ambassadorReport.length}</span>
+                    </span>
+                    <span className="text-gray-500">
+                      Total Delegates Referred: <span className="text-green-400 font-bold">
+                        {ambassadorReport.reduce((s, a) => s + (a.delegates?.length || 0), 0)}
+                      </span>
+                    </span>
+                    <span className="text-gray-500">
+                      Ambassadors with 0 referrals: <span className="text-yellow-400 font-bold">
+                        {ambassadorReport.filter(a => !a.delegates?.length).length}
+                      </span>
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Ambassador Delegate Drill-down Modal */}
+        {selectedAmbassador && (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#05080C]/90 backdrop-blur-md px-4">
+            <div className="glass-panel border-[#7C3AED]/40 max-w-3xl w-full p-8 shadow-[0_0_60px_rgba(124,58,237,0.15)] relative max-h-[90vh] overflow-y-auto animate-fade-in">
+              <button
+                onClick={() => setSelectedAmbassador(null)}
+                className="absolute top-6 right-6 text-gray-500 hover:text-white text-xl"
+              >✕</button>
+
+              <div className="mb-6">
+                <p className="text-[#A78BFA] font-mono text-[10px] tracking-[0.3em] uppercase mb-1">Ambassador Report</p>
+                <h3 className="text-2xl font-display font-black text-white tracking-widest uppercase">
+                  {selectedAmbassador.nameWithInitials || `${selectedAmbassador.firstName} ${selectedAmbassador.lastName}`}
+                </h3>
+                <p className="text-[#A78BFA] font-mono text-xs mt-1">
+                  {selectedAmbassador.ambassadorId} · {selectedAmbassador.university}
+                </p>
+              </div>
+
+              <div className="flex gap-4 mb-6 flex-wrap">
+                <div className="glass-panel border-white/5 bg-[#121822]/50 px-5 py-3 text-center">
+                  <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-1">Total Delegates</p>
+                  <p className="text-2xl font-bold text-green-400">{selectedAmbassador.delegates?.length || 0}</p>
+                </div>
+                <div className="glass-panel border-white/5 bg-[#121822]/50 px-5 py-3 text-center">
+                  <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-1">Faculty</p>
+                  <p className="text-sm font-bold text-white">{selectedAmbassador.faculty || '—'}</p>
+                </div>
+                <div className="glass-panel border-white/5 bg-[#121822]/50 px-5 py-3 text-center">
+                  <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-1">Year</p>
+                  <p className="text-sm font-bold text-white">{selectedAmbassador.yearOfStudy || '—'}</p>
+                </div>
+                <div className="glass-panel border-white/5 bg-[#121822]/50 px-5 py-3 text-center">
+                  <p className="text-gray-500 text-[10px] uppercase tracking-widest mb-1">WhatsApp</p>
+                  <p className="text-sm font-bold text-white">{selectedAmbassador.whatsapp || '—'}</p>
+                </div>
+              </div>
+
+              <p className="text-gray-500 font-mono text-[10px] uppercase tracking-widest mb-3 border-b border-white/10 pb-2">
+                Delegate Registrations ({selectedAmbassador.delegates?.length || 0})
+              </p>
+
+              <div className="space-y-3">
+                {selectedAmbassador.delegates?.map((reg: any, idx: number) => (
+                  <div key={reg.id} className="glass-panel border-[#7C3AED]/20 bg-[#05080C]/50 p-4">
+                    <div className="flex justify-between items-start flex-wrap gap-2 mb-2">
+                      <div>
+                        <span className="text-gray-500 font-mono text-[10px] mr-2">#{idx + 1}</span>
+                        <span className="text-white font-bold text-sm">
+                          {reg.type === 'team' ? reg.teamName : `${reg.leader?.firstName} ${reg.leader?.lastName}`}
+                        </span>
+                        <span className="ml-2 text-[9px] font-mono text-gray-500 bg-gray-800 px-2 py-0.5 rounded uppercase">{reg.type}</span>
+                      </div>
+                      <span className="text-gray-500 font-mono text-[10px]">
+                        {reg.createdAt ? new Date(reg.createdAt).toLocaleDateString() : ''}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-mono text-gray-400">
+                      <span>📧 {reg.email}</span>
+                      <span>🏛 {reg.university}</span>
+                      <span>👤 Leader: {reg.leader?.firstName} {reg.leader?.lastName}</span>
+                      {reg.leader?.phone && <span>📱 {reg.leader.phone}</span>}
+                    </div>
+                    {reg.type === 'team' && reg.teammates?.length > 0 && (
+                      <div className="mt-3 pt-2 border-t border-white/5">
+                        <p className="text-gray-600 text-[10px] uppercase tracking-widest mb-1">Teammates</p>
+                        <div className="flex flex-wrap gap-2">
+                          {reg.teammates.map((m: any, mi: number) => (
+                            <span key={mi} className="text-[10px] font-mono text-gray-400 bg-gray-800/50 px-2 py-1 rounded">
+                              {m.firstName} {m.lastName}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-between items-end mb-4 border-b border-[#121822] pb-4 flex-wrap gap-4">
           <h2 className="text-2xl font-display font-bold uppercase tracking-widest">
             Applicant Datasets <span className="text-[#00E5FF] ml-2">({allUsers.length})</span>
           </h2>
@@ -528,6 +1065,89 @@ export default function AdminDashboard() {
             </button>
           </div>
         </div>
+
+        {/* ============================================================ */}
+        {/* EXPORT PANEL                                                  */}
+        {/* ============================================================ */}
+        <div className="glass-panel border-emerald-500/20 bg-emerald-500/5 p-5 mb-8 rounded-xl">
+          <h3 className="text-emerald-400 font-mono text-xs tracking-[0.25em] uppercase mb-4 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
+            Export Registration Data
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* All Registrations */}
+            <div className="glass-panel border-white/10 bg-[#0a1018]/60 p-4 rounded-lg">
+              <p className="text-gray-400 font-mono text-[10px] uppercase tracking-widest mb-1">All Registrations</p>
+              <p className="text-white font-bold text-xl mb-3">{allUsers.length} <span className="text-gray-500 text-sm font-normal">records</span></p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleExportExcel('all')}
+                  disabled={exportBusy !== null || allUsers.length === 0}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded text-[10px] font-bold tracking-widest uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/25 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  {exportBusy === 'excel' ? '⏳' : '📊'} Excel
+                </button>
+                <button
+                  onClick={() => handleExportPDF('all')}
+                  disabled={exportBusy !== null || allUsers.length === 0}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded text-[10px] font-bold tracking-widest uppercase bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  {exportBusy === 'pdf' ? '⏳' : '📄'} PDF
+                </button>
+              </div>
+            </div>
+
+            {/* Phase 2 Participants */}
+            <div className="glass-panel border-[#00E5FF]/15 bg-[#0a1018]/60 p-4 rounded-lg">
+              <p className="text-gray-400 font-mono text-[10px] uppercase tracking-widest mb-1">Phase 2 Participants</p>
+              <p className="text-[#00E5FF] font-bold text-xl mb-3">{allUsers.filter(u => u.selectedForRound2).length} <span className="text-gray-500 text-sm font-normal">records</span></p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleExportExcel('phase2')}
+                  disabled={exportBusy !== null || allUsers.filter(u => u.selectedForRound2).length === 0}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded text-[10px] font-bold tracking-widest uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/25 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  {exportBusy === 'excel' ? '⏳' : '📊'} Excel
+                </button>
+                <button
+                  onClick={() => handleExportPDF('phase2')}
+                  disabled={exportBusy !== null || allUsers.filter(u => u.selectedForRound2).length === 0}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded text-[10px] font-bold tracking-widest uppercase bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  {exportBusy === 'pdf' ? '⏳' : '📄'} PDF
+                </button>
+              </div>
+            </div>
+
+            {/* Finalists */}
+            <div className="glass-panel border-[var(--gold)]/15 bg-[#0a1018]/60 p-4 rounded-lg">
+              <p className="text-gray-400 font-mono text-[10px] uppercase tracking-widest mb-1">🏆 Finalists</p>
+              <p className="text-[var(--gold)] font-bold text-xl mb-3">{allUsers.filter(u => u.isFinalist).length} <span className="text-gray-500 text-sm font-normal">records</span></p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleExportExcel('finalists')}
+                  disabled={exportBusy !== null || allUsers.filter(u => u.isFinalist).length === 0}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded text-[10px] font-bold tracking-widest uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/25 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  {exportBusy === 'excel' ? '⏳' : '📊'} Excel
+                </button>
+                <button
+                  onClick={() => handleExportPDF('finalists')}
+                  disabled={exportBusy !== null || allUsers.filter(u => u.isFinalist).length === 0}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded text-[10px] font-bold tracking-widest uppercase bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  {exportBusy === 'pdf' ? '⏳' : '📄'} PDF
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-gray-600 font-mono text-[10px] mt-4">
+            Excel exports include all fields including teammate details. PDF exports are landscape A3 for maximum readability.
+          </p>
+        </div>
+
 
         {/* TABLE 2: ROUND 2 ADVANCED (Always Visible) */}
         <div className="glass-panel border-[#00E5FF]/30 p-0 overflow-hidden mb-12 shadow-[0_0_20px_rgba(0,229,255,0.05)]">
