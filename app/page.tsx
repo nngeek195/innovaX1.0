@@ -140,7 +140,7 @@ const PARTNERS = [
 const FAQS = [
   {
     q: 'Who can take part in InnovaX?',
-    a: 'Any undergraduate team of 2–4 students from a recognised university is welcome. Mixed-university teams are allowed, and first-time hackers are encouraged to apply.',
+    a: 'Any undergraduate team of 1–3 students from a recognised university is welcome. Mixed-university teams are allowed, and first-time hackers are encouraged to apply.',
   },
   {
     q: 'Is there a registration fee?',
@@ -156,7 +156,7 @@ const FAQS = [
   },
   {
     q: 'Where does the Final Round take place?',
-    a: 'On campus at the Faculty of Computing, Sabaragamuwa University of Sri Lanka. Remote pitching may be arranged for exceptional cases — contact the organisers in advance.',
+    a: 'On university premises, Sabaragamuwa University of Sri Lanka. Remote pitching may be arranged for exceptional cases — contact the organisers in advance.',
   },
 ];
 
