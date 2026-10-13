@@ -20,7 +20,7 @@
 // Fallback is localhost so local dev works out of the box.
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
-  'https://innovax.cschaptersusl.org:3000';
+  'https://innovax.cschaptersusl.org';
 
 // ---------------------------------------------------------------------------
 // Derived URLs
