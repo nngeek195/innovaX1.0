@@ -33,8 +33,8 @@ export const LOGIN_URL     = `${SITE_URL}/login`;
 // Email "from" addresses
 // Change the domain part here once — all API routes pick it up automatically.
 // ---------------------------------------------------------------------------
-export const EMAIL_FROM_EVENTS   = 'InnovaX Command <events@niranga.tech>';
-export const EMAIL_FROM_SECURITY = 'InnovaX Security <security@niranga.tech>';
+export const EMAIL_FROM_EVENTS   = 'InnovaX Command <events@innovax.cschaptersusl.org>';
+export const EMAIL_FROM_SECURITY = 'InnovaX Security <security@innovax.cschaptersusl.org>';
 
 // ---------------------------------------------------------------------------
 // Contact / support addresses (shown in email footers & UI)

@@ -14,7 +14,7 @@ export async function POST(request: Request) {
 
     // We map over the array to generate customized emails for each team
     const emailBatch = recipients.map((recipient: any) => ({
-      from: 'InnovaX Command <events@niranga.tech>', 
+      from: 'InnovaX Command <events@innovax.cschaptersusl.org>', 
       to: [recipient.email],
       subject: phase === 1 ? 'InnovaX: Phase 1 Submission Verified' : 'InnovaX: You are a Finalist!',
       react: InnovaXEmail({ teamName: recipient.teamName, phase }),

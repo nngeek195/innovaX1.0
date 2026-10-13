@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       const referralLink = r.referralLink || `${origin}/register?ref=${encodeURIComponent(r.ambassadorId)}`;
 
       return {
-        from: 'InnovaX Command <events@niranga.tech>',
+        from: 'InnovaX Command <events@innovax.cschaptersusl.org>',
         to: [r.email],
         subject: `InnovaX 2026: Campus Ambassador Appointment [${r.ambassadorId}]`,
         react: AmbassadorEmail({

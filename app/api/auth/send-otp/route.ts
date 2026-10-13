@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
     // 4. Send Email via Resend
     await resend.emails.send({
-      from: 'InnovaX Security <security@niranga.tech>', 
+      from: 'InnovaX Security <security@innovax.cschaptersusl.org>', 
       to: [email],
       subject: 'InnovaX Registration Code: ' + otp,
       react: OTPTemplate({ otp, name }),
