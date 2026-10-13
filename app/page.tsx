@@ -988,10 +988,9 @@ export default function Home() {
 
               <div className="flex justify-center gap-3 sm:gap-4 mb-12 sm:mb-16">
                 {[
-                  { name: "LinkedIn", icon: <FaLinkedinIn />, href: "#" },
-                  { name: "Facebook", icon: <FaFacebookF />, href: "#" },
-                  { name: "YouTube", icon: <FaYoutube />, href: "#" },
-                  { name: "Instagram", icon: <FaInstagram />, href: "#" },
+                  { name: "LinkedIn", icon: <FaLinkedinIn />, href: "https://www.linkedin.com/company/ieee-cs-student-branch-chapter-susl" },
+                  { name: "Facebook", icon: <FaFacebookF />, href: "https://www.facebook.com/profile.php?id=61565615188093" },
+                  { name: "Instagram", icon: <FaInstagram />, href: "https://www.instagram.com/ieee_cs_susl?stkn=MWx2d2k4Y2FkaHU2eQ==" },
                 ].map((social) => (
                   <a
                     key={social.name}
