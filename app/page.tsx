@@ -104,37 +104,37 @@ const TIMELINE = [
 
 const PARTNERS = [
   {
-    tier: 'Platinum',
-    badge: '/Platinum.png',
-    logo: '/sponsors/wso2-vector-logo-2022.png',
+    tier: 'Media',
+    badge: '/MediaPartner.png',
+    logo: '/sponsors/HackSL.png',
     logoBg: '#FFFFFF',
-    company: 'WSO2',
-    description: 'WSO2 is a global technology company that develops foundational platforms for enterprises to meet their agentic needs.',
+    company: 'HackSL',
+    description: 'HackSL is a prominent Sri Lankan tech community focused on hackathons and tech events, connecting over 2,000 members across private and public universities nationwide',
   },
-  {
-    tier: 'Gold',
-    badge: '/gold.png',
-    logo: '/sponsors/dialog.png',
-    logoBg: '#FFFFFF',
-    company: 'Dialog Axiata PLC',
-    description: 'Dialog Axiata Group (Dialog), a subsidiary of Axiata Group Berhad (Axiata), operates Sri Lanka\’s leading quad-play connectivity provider.',
-  },
-  {
-    tier: 'Silver',
-    badge: '/silver.png',
-    logo: '/sponsors/keels.png',
-    logoBg: '#72ff4f',
-    company: 'Keells',
-    description: 'Keells is one of Sri Lanka\'s largest supermarket chains with 132 stores located across the island.',
-  },
-  {
-    tier: 'Bronze',
-    badge: '/bronze.png',
-    logo: '/sponsors/commercial.png',
-    logoBg: '#FFFFFF',
-    company: 'Commercial Bank of Ceylon PLC',
-    description: 'Having set a benchmark in banking in Sri Lanka we have set standards, created an identity and forged an unsurpassable trend.',
-  },
+  // {
+  //   tier: 'Knowllege',
+  //   badge: '/KnowllegePartner.png',
+  //   logo: '/sponsors/dialog.png',
+  //   logoBg: '#FFFFFF',
+  //   company: 'Dialog Axiata PLC',
+  //   description: 'Dialog Axiata Group (Dialog), a subsidiary of Axiata Group Berhad (Axiata), operates Sri Lanka\’s leading quad-play connectivity provider.',
+  // },
+  // {
+  //   tier: 'Silver',
+  //   badge: '/silver.png',
+  //   logo: '/sponsors/keels.png',
+  //   logoBg: '#72ff4f',
+  //   company: 'Keells',
+  //   description: 'Keells is one of Sri Lanka\'s largest supermarket chains with 132 stores located across the island.',
+  // },
+  // {
+  //   tier: 'Bronze',
+  //   badge: '/bronze.png',
+  //   logo: '/sponsors/commercial.png',
+  //   logoBg: '#FFFFFF',
+  //   company: 'Commercial Bank of Ceylon PLC',
+  //   description: 'Having set a benchmark in banking in Sri Lanka we have set standards, created an identity and forged an unsurpassable trend.',
+  // },
 ];
 
 const FAQS = [
@@ -492,93 +492,117 @@ export default function Home() {
     </p>
   </Reveal>
           
+{/* EMBEDDED GUIDEBOOK */}
+<Script
+  src="https://static.anyflip.com/plugin/LightBox/js/anyflp-light-box-api-min.js"
+  strategy="lazyOnload"
+/>
 
-  {/* EMBEDDED GUIDEBOOK */}
-  <Script src="//static.anyflip.com/plugin/LightBox/js/anyflp-light-box-api-min.js" strategy="lazyOnload" />
-  
-  <Reveal className="w-full flex flex-col items-center max-w-5xl mx-auto px-2 sm:px-4">
-    {/* Terminal / Cyber Header Bar */}
-    <div className="w-full bg-[#0a1018] border border-[#00E5FF]/30 rounded-t-xl sm:rounded-t-2xl px-3 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between shadow-[0_0_30px_rgba(0,229,255,0.1)]">
-      <div className="flex items-center gap-2 sm:gap-3">
-        <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500/80 inline-block" />
-          <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-500/80 inline-block" />
-          <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-500/80 inline-block" />
-        </div>
-        <span className="font-mono text-[11px] sm:text-xs text-[#00E5FF] tracking-wider uppercase truncate max-w-[180px] sm:max-w-none">
-          DOC.VIEWER // INNOVAX_PROPOSAL_BOOKLET
-        </span>
+<Reveal className="w-full flex flex-col items-center max-w-5xl mx-auto px-2 sm:px-4">
+  {/* Terminal / Cyber Header Bar */}
+  <div className="w-full bg-[#0a1018] border border-[#00E5FF]/30 rounded-t-xl sm:rounded-t-2xl px-3 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between shadow-[0_0_30px_rgba(0,229,255,0.1)]">
+    <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex items-center gap-1.5">
+        <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500/80 inline-block" />
+        <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-500/80 inline-block" />
+        <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-500/80 inline-block" />
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-4">
-        <span className="font-mono text-[10px] text-[var(--mist)] uppercase tracking-widest hidden md:inline-block">
-          INTERACTIVE FLIPBOOK
-        </span>
-        <a
-          href="https://online.anyflip.com/xrsxp/xepc/index.html"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-mono text-[11px] sm:text-xs text-[#00E5FF] hover:text-white bg-[#00E5FF]/10 hover:bg-[#00E5FF]/20 border border-[#00E5FF]/40 rounded-full px-3 py-1 transition-all duration-300 flex items-center gap-1.5 shrink-0"
-          title="Open booklet in full window"
-        >
-          <span>FULLSCREEN</span>
-          <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-          </svg>
-        </a>
-      </div>
-    </div>
-
-    {/* Iframe Frame Container */}
-    <div className="w-full relative bg-[#05080C] border-x border-b border-[#00E5FF]/30 rounded-b-xl sm:rounded-b-2xl p-1.5 sm:p-3 shadow-[0_10px_60px_rgba(0,229,255,0.15)] overflow-hidden">
-      <div className="w-full h-[360px] sm:h-[460px] md:h-[540px] lg:h-[600px] rounded-lg sm:rounded-xl overflow-hidden bg-black/60 relative">
-        <iframe
-          src="https://online.anyflip.com/xrsxp/xepc/index.html"
-          title="InnovaX Delegate Booklet"
-          className="w-full h-full border-0"
-          style={{ width: '100%', height: '100%' }}
-        />
-      </div>
-    </div>
-
-    {/* Guide Controls Hint */}
-    <div className="mt-3 sm:mt-4 flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-[11px] sm:text-xs font-mono text-[var(--mist)] text-center">
-      <span className="flex items-center gap-1.5">
-        <span className="w-2 h-2 rounded-full bg-[#00E5FF] animate-pulse" />
-        Click or drag page corners to flip
+      <span className="font-mono text-[11px] sm:text-xs text-[#00E5FF] tracking-wider uppercase truncate max-w-[180px] sm:max-w-none">
+        DOC.VIEWER // INNOVAX_PROPOSAL_BOOKLET
       </span>
-      <span className="hidden sm:inline text-white/20">•</span>
-      <span>Use bottom toolbar inside reader to zoom or expand full view</span>
     </div>
 
-    {/* TRACK CARDS */}
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 w-full mt-10 sm:mt-14">
-      {TRACKS.map((t) => (
-        <div
-          key={t.code}
-          className="glass-panel relative flex flex-col justify-between group hover:border-[#00E5FF]/60 hover:shadow-[0_0_25px_rgba(0,229,255,0.2)] transition-all duration-300"
+    <div className="flex items-center gap-2 sm:gap-4">
+      <span className="font-mono text-[10px] text-[var(--mist)] uppercase tracking-widest hidden md:inline-block">
+        INTERACTIVE FLIPBOOK
+      </span>
+
+      <a
+        href="https://online.anyflip.com/xrsxp/xepc/index.html"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-mono text-[11px] sm:text-xs text-[#00E5FF] hover:text-white bg-[#00E5FF]/10 hover:bg-[#00E5FF]/20 border border-[#00E5FF]/40 rounded-full px-3 py-1 transition-all duration-300 flex items-center gap-1.5 shrink-0"
+        title="Open booklet in full window"
+      >
+        <span>FULLSCREEN</span>
+
+        <svg
+          className="w-3 h-3 sm:w-3.5 sm:h-3.5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
         >
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <span className="font-mono text-xs text-[#00E5FF] bg-[#00E5FF]/10 border border-[#00E5FF]/20 px-2.5 py-1 rounded">
-                {t.code}
-              </span>
-              <span className="w-2 h-2 rounded-full bg-[#00E5FF]/40 group-hover:bg-[#00E5FF] transition-colors" />
-            </div>
-
-            <h3 className="font-display text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 group-hover:text-[#00E5FF] transition-colors">
-              {t.title}
-            </h3>
-
-            <p className="text-xs sm:text-sm text-[var(--mist)] leading-relaxed">
-              {t.desc}
-            </p>
-          </div>
-        </div>
-      ))}
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+          />
+        </svg>
+      </a>
     </div>
-  </Reveal>
+  </div>
+
+  {/* Iframe Frame Container */}
+  <div className="w-full relative bg-[#05080C] border-x border-b border-[#00E5FF]/30 rounded-b-xl sm:rounded-b-2xl p-1.5 sm:p-3 shadow-[0_10px_60px_rgba(0,229,255,0.15)] overflow-hidden">
+    <div className="w-full h-[360px] sm:h-[460px] md:h-[540px] lg:h-[600px] rounded-lg sm:rounded-xl overflow-hidden bg-black/60 relative">
+      <iframe
+        src="https://online.anyflip.com/xrsxp/njsx/index.html"
+        title="InnovaX Proposal Booklet"
+        className="absolute inset-0 w-full h-full border-0"
+        scrolling="no"
+        allow="fullscreen"
+        allowFullScreen
+      />
+    </div>
+  </div>
+
+  {/* Guide Controls Hint */}
+  <div className="mt-3 sm:mt-4 flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-[11px] sm:text-xs font-mono text-[var(--mist)] text-center">
+    <span className="flex items-center gap-1.5">
+      <span className="w-2 h-2 rounded-full bg-[#00E5FF] animate-pulse" />
+      Click or drag page corners to flip
+    </span>
+
+    <span className="hidden sm:inline text-white/20">•</span>
+
+    <span>
+      Use bottom toolbar inside reader to zoom or expand full view
+    </span>
+  </div>
+
+  {/* TRACK CARDS */}
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 w-full mt-10 sm:mt-14">
+    {TRACKS.map((t) => (
+      <div
+        key={t.code}
+        className="glass-panel relative flex flex-col justify-between group hover:border-[#00E5FF]/60 hover:shadow-[0_0_25px_rgba(0,229,255,0.2)] transition-all duration-300"
+      >
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <span className="font-mono text-xs text-[#00E5FF] bg-[#00E5FF]/10 border border-[#00E5FF]/20 px-2.5 py-1 rounded">
+              {t.code}
+            </span>
+
+            <span className="w-2 h-2 rounded-full bg-[#00E5FF]/40 group-hover:bg-[#00E5FF] transition-colors" />
+          </div>
+
+          <h3 className="font-display text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 group-hover:text-[#00E5FF] transition-colors">
+            {t.title}
+          </h3>
+
+          <p className="text-xs sm:text-sm text-[var(--mist)] leading-relaxed">
+            {t.desc}
+          </p>
+        </div>
+      </div>
+    ))}
+  </div>
+</Reveal>
 </section>
+
 
 
 {/* =========================================
@@ -767,7 +791,7 @@ export default function Home() {
             >
               
               {/* LEFT: PARTNERS (Sector 04) */}
-{/* <div className="w-screen h-full flex items-center justify-center overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+<div className="w-screen h-full flex items-center justify-center overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
   
  
         <section id="partners" className="section-container text-center">
@@ -836,7 +860,7 @@ export default function Home() {
                     </div>
                   </Reveal>
                 </section>
-              </div> */}
+              </div>
 
               {/* RIGHT: FAQ (Sector 05) */}
 <div className="w-screen h-full flex items-center justify-center overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
