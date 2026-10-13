@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { FaPlus } from "react-icons/fa";
-import { FaInstagram, FaLinkedinIn, FaYoutube, FaFacebookF} from "react-icons/fa6";
+import { FaInstagram, FaLinkedinIn, FaYoutube, FaFacebookF, FaLock } from "react-icons/fa6";
 import dynamic from 'next/dynamic';
 import Script from 'next/script';
 import CSChapterLogo from '../public/CSChapterLogo.png'
@@ -39,18 +39,21 @@ const STATS = [
 const TRACKS = [
   {
     code: 'TRK.01',
-    title: 'Autonomous Agents',
-    desc: 'Multi-step agents that plan, reason, and act - from task copilots to fully self-directed workflows.',
+    status: 'CLASSIFIED',
+    title: 'Reveal Soon',
+    desc: 'Challenge brief and problem domain are currently encrypted. Official track details will be revealed soon.',
   },
   {
     code: 'TRK.02',
-    title: 'AI For Impact',
-    desc: 'Applied solutions for healthcare, agriculture, and education built for Sri Lankan communities.',
+    status: 'CLASSIFIED',
+    title: 'Reveal Soon',
+    desc: 'Challenge brief and problem domain are currently encrypted. Official track details will be revealed soon.',
   },
   {
     code: 'TRK.03',
-    title: 'Enterprise Automation',
-    desc: 'Agentic tools that cut busywork out of real operations - support, finance, logistics, and ops.',
+    status: 'CLASSIFIED',
+    title: 'Reveal Soon',
+    desc: 'Challenge brief and problem domain are currently encrypted. Official track details will be revealed soon.',
   },
 ];
 
@@ -578,24 +581,51 @@ export default function Home() {
     {TRACKS.map((t) => (
       <div
         key={t.code}
-        className="glass-panel relative flex flex-col justify-between group hover:border-[#00E5FF]/60 hover:shadow-[0_0_25px_rgba(0,229,255,0.2)] transition-all duration-300"
+        className="relative flex flex-col justify-between group overflow-hidden rounded-2xl p-6 sm:p-7 bg-[#121822]/40 backdrop-blur-md border border-dashed border-[#00E5FF]/25 hover:border-[#00E5FF]/60 hover:bg-[#121822]/60 hover:shadow-[0_0_30px_rgba(0,229,255,0.18)] transition-all duration-500"
       >
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <span className="font-mono text-xs text-[#00E5FF] bg-[#00E5FF]/10 border border-[#00E5FF]/20 px-2.5 py-1 rounded">
-              {t.code}
-            </span>
+        {/* Ghost ambient glow in the corner */}
+        <div className="absolute -top-12 -right-12 w-36 h-36 bg-[#00E5FF]/10 rounded-full blur-3xl group-hover:bg-[#00E5FF]/20 transition-all duration-500 pointer-events-none" />
 
-            <span className="w-2 h-2 rounded-full bg-[#00E5FF]/40 group-hover:bg-[#00E5FF] transition-colors" />
+        {/* Ghost background watermark lock */}
+        <FaLock className="absolute -bottom-3 -right-2 text-white/[0.03] group-hover:text-[#00E5FF]/[0.08] text-7xl sm:text-8xl transition-all duration-500 pointer-events-none select-none -rotate-12" />
+
+        <div className="relative z-10 flex flex-col justify-between h-full">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <span className="font-mono text-xs text-[#00E5FF] bg-[#00E5FF]/10 border border-[#00E5FF]/25 px-2.5 py-1 rounded flex items-center gap-1.5 shadow-[0_0_10px_rgba(0,229,255,0.1)]">
+                <FaLock className="text-[10px] text-[#00E5FF]/80" />
+                {t.code}
+              </span>
+
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/10 font-mono text-[10px] tracking-wider text-[var(--mist)]">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00E5FF] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#00E5FF]" />
+                </span>
+                <span className="text-[#00E5FF]/90 font-semibold">{t.status}</span>
+              </div>
+            </div>
+
+            <h3 className="font-display text-lg sm:text-xl font-bold text-white/90 mb-2 sm:mb-2.5 tracking-wide group-hover:text-[#00E5FF] transition-colors">
+              {t.title}
+            </h3>
+
+            <p className="text-xs sm:text-sm text-[var(--mist)]/80 leading-relaxed font-sans">
+              {t.desc}
+            </p>
           </div>
 
-          <h3 className="font-display text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3 group-hover:text-[#00E5FF] transition-colors">
-            {t.title}
-          </h3>
-
-          <p className="text-xs sm:text-sm text-[var(--mist)] leading-relaxed">
-            {t.desc}
-          </p>
+          {/* Ghost / Encrypted placeholder telemetry */}
+          <div className="mt-5 pt-4 border-t border-white/5 space-y-2">
+            <div className="flex items-center justify-between font-mono text-[10px] text-[#00E5FF]/60 uppercase tracking-widest">
+              <span>Transmission</span>
+              <span className="animate-pulse">Awaiting Signal...</span>
+            </div>
+            <div className="space-y-1.5 opacity-40 group-hover:opacity-75 transition-opacity duration-300">
+              <div className="h-1 bg-gradient-to-r from-[#00E5FF]/40 via-white/10 to-transparent rounded-full w-full" />
+              <div className="h-1 bg-gradient-to-r from-[#00E5FF]/25 via-white/5 to-transparent rounded-full w-3/4" />
+            </div>
+          </div>
         </div>
       </div>
     ))}
