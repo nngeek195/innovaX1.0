@@ -30,9 +30,9 @@ const NAV_ITEMS = [
 ];
 
 const STATS = [
-  { label: 'Prize Pool', value: 'LKR 100K+' },
-  { label: 'Proposals Due', value: 'SEP 08' },
-  { label: 'Final Round', value: 'OCT 10' },
+  { label: 'Prize Pool', value: 'LKR 50K+' },
+  { label: 'Proposals Due', value: 'NOV 26' },
+  { label: 'Final Round', value: 'DEC 13' },
   { label: 'Open Tracks', value: '03' },
 ];
 
@@ -57,7 +57,7 @@ const TRACKS = [
 // --- UPDATED TIMELINE ROADMAP ---
 const TIMELINE = [
   {
-    date: 'October 12',
+    date: 'October 14',
     title: 'Registration Opening',
     desc: 'The gates open. Form your crew of 2–4 and claim your team slot before it fills.',
     side: 'right',
@@ -486,7 +486,7 @@ export default function Home() {
 
     <p className="heading-sub text-center">
       InnovaX is run by student volunteers of the IEEE Computer Society
-      Chapter at Sabaragamuwa University of Sri Lanka. Teams of 2 – 4
+      Chapter at Sabaragamuwa University of Sri Lanka. Teams of 1 – 3
       undergraduates pick one track below and spend six weeks turning an
       idea into a working Agentic AI proposal.
     </p>
@@ -978,11 +978,11 @@ export default function Home() {
                   </svg>
                   <span className="truncate">ssomaweera@foc.sab.ac.lk</span>
                 </a>
-                <a href="mailto:innovax.susl@gmail.com" className="group border border-[#121822] rounded-full px-4 sm:px-6 py-2.5 sm:py-3 text-[11px] sm:text-xs text-[var(--mist)] hover:text-white hover:border-[#00E5FF] bg-[#121822]/50 hover:bg-[#121822] transition-all duration-300 flex items-center gap-2 sm:gap-3 max-w-full truncate">
+                <a href="mailto:ieeecschaptersusl@gmail.com" className="group border border-[#121822] rounded-full px-4 sm:px-6 py-2.5 sm:py-3 text-[11px] sm:text-xs text-[var(--mist)] hover:text-white hover:border-[#00E5FF] bg-[#121822]/50 hover:bg-[#121822] transition-all duration-300 flex items-center gap-2 sm:gap-3 max-w-full truncate">
                   <svg className="w-4 h-4 text-[#00E5FF] group-hover:scale-110 transition-transform shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                  <span className="truncate">innovax.susl@gmail.com</span>
+                  <span className="truncate">ieeecschaptersusl@gmail.com</span>
                 </a>
               </div>
 
