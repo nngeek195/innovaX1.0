@@ -59,7 +59,7 @@ const TIMELINE = [
   {
     date: 'October 14',
     title: 'Registration Opening',
-    desc: 'The gates open. Form your crew of 2–4 and claim your team slot before it fills.',
+    desc: 'The gates open. Form your crew of 1–3 and claim your team slot before it fills.',
     side: 'right',
   },
   {
