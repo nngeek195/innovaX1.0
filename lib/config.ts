@@ -20,7 +20,7 @@
 // Fallback is localhost so local dev works out of the box.
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
-  'http://localhost:3000';
+  'https://innovax.cschaptersusl.org:3000';
 
 // ---------------------------------------------------------------------------
 // Derived URLs
@@ -39,5 +39,5 @@ export const EMAIL_FROM_SECURITY = 'InnovaX Security <security@niranga.tech>';
 // ---------------------------------------------------------------------------
 // Contact / support addresses (shown in email footers & UI)
 // ---------------------------------------------------------------------------
-export const CONTACT_EMAIL_GENERAL  = 'innovax.susl@gmail.com';
+export const CONTACT_EMAIL_GENERAL  = 'ieeecschaptersusl@gmail.com';
 export const CONTACT_EMAIL_ADVISOR  = 'ssomaweera@foc.sab.ac.lk';
