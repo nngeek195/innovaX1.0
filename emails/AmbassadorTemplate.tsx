@@ -13,7 +13,7 @@ export const AmbassadorEmail = ({
   name,
   ambassadorId,
   university,
-  siteUrl = 'https://innovax.niranga.tech',
+  siteUrl = 'https://innovax.cschaptersusl.org',
   referralLink,
 }: AmbassadorEmailProps) => {
   const themeColor = '#00E5FF';
@@ -98,7 +98,7 @@ export const AmbassadorEmail = ({
               Sabaragamuwa University of Sri Lanka
             </Text>
             <Text style={footerLinks}>
-              <Link href="mailto:innovax.susl@gmail.com" style={link}>innovax.susl@gmail.com</Link> •{' '}
+              <Link href="mailto:ieeecschaptersusl@gmail.com" style={link}>ieeecschaptersusl@gmail.com</Link> •{' '}
               <Link href="mailto:ssomaweera@foc.sab.ac.lk" style={link}>ssomaweera@foc.sab.ac.lk</Link>
             </Text>
             <Text style={footerText}>© InnovaX 2026. All Rights Reserved.</Text>

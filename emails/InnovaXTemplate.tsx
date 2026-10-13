@@ -79,7 +79,7 @@ export const InnovaXEmail = ({ teamName, phase }: InnovaXEmailProps) => {
             )}
 
             <Section style={buttonContainer}>
-              <Link href="https://your-domain.com/dashboard" style={{ ...button, backgroundColor: themeColor }}>
+              <Link href="https://innovax.cschaptersusl.org/dashboard" style={{ ...button, backgroundColor: themeColor }}>
                 ACCESS COMMAND DASHBOARD
               </Link>
             </Section>
@@ -93,7 +93,7 @@ export const InnovaXEmail = ({ teamName, phase }: InnovaXEmailProps) => {
               Sabaragamuwa University of Sri Lanka
             </Text>
             <Text style={footerLinks}>
-              <Link href="mailto:innovax.susl@gmail.com" style={link}>innovax.susl@gmail.com</Link> • <Link href="mailto:ssomaweera@foc.sab.ac.lk" style={link}>ssomaweera@foc.sab.ac.lk</Link>
+              <Link href="mailto:ieeecschaptersusl@gmail.com" style={link}>ieeecschaptersusl@gmail.com</Link> • <Link href="mailto:ssomaweera@foc.sab.ac.lk" style={link}>ssomaweera@foc.sab.ac.lk</Link>
             </Text>
             <Text style={footerText}>© InnovaX 2026. All Rights Reserved.</Text>
           </Section>
