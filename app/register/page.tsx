@@ -553,8 +553,8 @@ export default function Register() {
                       {type === 'team' ? 'Team Leader Details' : 'Agent Details'}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <FieldInput label="First Name" type="text" placeholder="Niranga" value={leader.firstName} onChange={(e) => setLeader({ ...leader, firstName: e.target.value })} required />
-                      <FieldInput label="Last Name" type="text" placeholder="Nayanajith" value={leader.lastName} onChange={(e) => setLeader({ ...leader, lastName: e.target.value })} required />
+                      <FieldInput label="First Name" type="text" placeholder="Alen" value={leader.firstName} onChange={(e) => setLeader({ ...leader, firstName: e.target.value })} required />
+                      <FieldInput label="Last Name" type="text" placeholder="Joe" value={leader.lastName} onChange={(e) => setLeader({ ...leader, lastName: e.target.value })} required />
                       <FieldInput label="ID Card Number (NIC)" type="text" placeholder="200012345678" value={leader.idCard} onChange={(e) => setLeader({ ...leader, idCard: e.target.value })} required />
                       <FieldInput label="WhatsApp Number" type="tel" placeholder="+94 7X XXX XXXX" value={leader.phone} onChange={(e) => setLeader({ ...leader, phone: e.target.value })} required />
                     </div>
