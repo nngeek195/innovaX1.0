@@ -522,7 +522,7 @@ export default function Home() {
       </span>
 
       <a
-        href="https://online.anyflip.com/xrsxp/xepc/index.html"
+        href="https://online.anyflip.com/fmmmx/vbhr/index.html"
         target="_blank"
         rel="noopener noreferrer"
         className="font-mono text-[11px] sm:text-xs text-[#00E5FF] hover:text-white bg-[#00E5FF]/10 hover:bg-[#00E5FF]/20 border border-[#00E5FF]/40 rounded-full px-3 py-1 transition-all duration-300 flex items-center gap-1.5 shrink-0"
@@ -552,7 +552,7 @@ export default function Home() {
   <div className="w-full relative bg-[#05080C] border-x border-b border-[#00E5FF]/30 rounded-b-xl sm:rounded-b-2xl p-1.5 sm:p-3 shadow-[0_10px_60px_rgba(0,229,255,0.15)] overflow-hidden">
     <div className="w-full h-[360px] sm:h-[460px] md:h-[540px] lg:h-[600px] rounded-lg sm:rounded-xl overflow-hidden bg-black/60 relative">
       <iframe
-        src="https://online.anyflip.com/xrsxp/njsx/index.html"
+        src="https://online.anyflip.com/fmmmx/vbhr/index.html"
         title="InnovaX Proposal Booklet"
         className="absolute inset-0 w-full h-full border-0"
         scrolling="no"
