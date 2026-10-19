@@ -281,6 +281,9 @@ body {
 
   .partners-carousel {
     @apply relative flex items-center justify-center;
+
+    --carousel-angle: 0deg;
+
     width: min(90vw, 460px);
     height: 360px;
     perspective: 1100px;

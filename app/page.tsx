@@ -107,6 +107,22 @@ const TIMELINE = [
 
 const PARTNERS = [
   {
+    tier: 'Bronze',
+    badge: '/bronze.png',
+    logo: '/sponsors/rathganga.png',
+    logoBg: '#FFFFFF',
+    company: 'Rathganga Studio and Colour Lab',
+    description: 'Rathganga Studio and Colour Lab is a professional photography studio offering photography, photo printing, and colour lab services with quality and creativity.',
+  },
+  {
+    tier: 'Knowllege',
+    badge: '/KnowllegePartner.png',
+    logo: '/sponsors/loonsLab.png',
+    logoBg: '#FFFFFF',
+    company: 'Loons Lab',
+    description: 'Loons Lab is an engineering-first software company dedicated to designing digital solutions that transform industries, enhance healthcare, and empower governments.',
+  },
+  {
     tier: 'Media',
     badge: '/MediaPartner.png',
     logo: '/sponsors/HackSL.png',
@@ -115,28 +131,12 @@ const PARTNERS = [
     description: 'HackSL is a prominent Sri Lankan tech community focused on hackathons and tech events, connecting over 2,000 members across private and public universities nationwide',
   },
   // {
-  //   tier: 'Knowllege',
-  //   badge: '/KnowllegePartner.png',
-  //   logo: '/sponsors/dialog.png',
-  //   logoBg: '#FFFFFF',
-  //   company: 'Dialog Axiata PLC',
-  //   description: 'Dialog Axiata Group (Dialog), a subsidiary of Axiata Group Berhad (Axiata), operates Sri Lanka\’s leading quad-play connectivity provider.',
-  // },
-  // {
   //   tier: 'Silver',
   //   badge: '/silver.png',
   //   logo: '/sponsors/keels.png',
   //   logoBg: '#72ff4f',
   //   company: 'Keells',
   //   description: 'Keells is one of Sri Lanka\'s largest supermarket chains with 132 stores located across the island.',
-  // },
-  // {
-  //   tier: 'Bronze',
-  //   badge: '/bronze.png',
-  //   logo: '/sponsors/commercial.png',
-  //   logoBg: '#FFFFFF',
-  //   company: 'Commercial Bank of Ceylon PLC',
-  //   description: 'Having set a benchmark in banking in Sri Lanka we have set standards, created an identity and forged an unsurpassable trend.',
   // },
 ];
 
@@ -493,6 +493,8 @@ export default function Home() {
       undergraduates pick one track below and spend six weeks turning an
       idea into a working Agentic AI proposal.
     </p>
+
+    <a href="/InnovaX 1.0 Delegate Booklet.pdf" download="InnovaX 1.0 Delegate Booklet.pdf" className="btn-outline-cyan border-[#00E5FF] text-white hover:border-[#00E5FF] hover:text-[#05080C] bg-transparent hover:bg-[#00E5FF] w-full sm:w-auto text-center justify-center mt-[30]">Download</a>
   </Reveal>
           
 {/* EMBEDDED GUIDEBOOK */}
