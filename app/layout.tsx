@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "InnovaX 1.0 | CS Chapter USL",
+  title: "InnovaX 1.0 | CS Chapter SUSL",
   description:
     "InnovaX 1.0 — The premier hackathon organized by the CS Chapter of the University of Sri Lanka. Compete, innovate, and build the future.",
   metadataBase: new URL("https://innovax.cschaptersusl.org"),
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "InnovaX 1.0 | CS Chapter USL",
+    title: "InnovaX 1.0 | CS Chapter SUSL",
     description:
       "InnovaX 1.0 — The premier hackathon organized by the CS Chapter of the University of Sri Lanka.",
     url: "https://innovax.cschaptersusl.org",
