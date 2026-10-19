@@ -40,20 +40,20 @@ const TRACKS = [
   {
     code: 'TRK.01',
     status: 'CLASSIFIED',
-    title: 'Reveal Soon',
-    desc: 'Challenge brief and problem domain are currently encrypted. Official track details will be revealed soon.',
+    title: 'Smart Environment & Physical Systems',
+    desc: 'Environmental monitoring, disaster alerts, smart agriculture, and predictive',
   },
   {
     code: 'TRK.02',
     status: 'CLASSIFIED',
-    title: 'Reveal Soon',
-    desc: 'Challenge brief and problem domain are currently encrypted. Official track details will be revealed soon.',
+    title: 'Education & HumanCapabilities',
+    desc: 'Personalized learning, research assistants, accessibility, and Sinhala/Tamil language learning support.',
   },
   {
     code: 'TRK.03',
     status: 'CLASSIFIED',
-    title: 'Reveal Soon',
-    desc: 'Challenge brief and problem domain are currently encrypted. Official track details will be revealed soon.',
+    title: 'Civic Services & Community Wellbeing ',
+    desc: 'Government services, financial inclusion, health information, and small business support.',
   },
 ];
 
