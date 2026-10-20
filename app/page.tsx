@@ -123,6 +123,14 @@ const PARTNERS = [
     description: 'Loons Lab is an engineering-first software company dedicated to designing digital solutions that transform industries, enhance healthcare, and empower governments.',
   },
   {
+    tier: 'Gift',
+    badge: '/GiftPartner.png',
+    logo: '/sponsors/pearlbay.png',
+    logoBg: '#FFFFFF',
+    company: 'Pearl Bay',
+    description: 'Pearl Bay is a premier leisure park under the David Pieris Group of Companies, offering world-class attractions, professional services, and unforgettable experiences in a safe and enjoyable environment.',
+  },
+  {
     tier: 'Media',
     badge: '/MediaPartner.png',
     logo: '/sponsors/HackSL.png',
