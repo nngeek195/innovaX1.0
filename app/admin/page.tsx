@@ -49,6 +49,14 @@ export default function AdminDashboard() {
   // --- Export State ---
   const [exportBusy, setExportBusy] = useState<'excel' | 'pdf' | null>(null);
 
+  // --- Registration Analytics & Filters State ---
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [filterUniversity, setFilterUniversity] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'team' | 'individual'>('all');
+  const [filterPhase, setFilterPhase] = useState<'all' | 'phase2' | 'finalist'>('all');
+  const [filterProposal, setFilterProposal] = useState<'all' | 'submitted' | 'pending'>('all');
+  const [filterSearch, setFilterSearch] = useState('');
+
   // --- Security Confirmation Modal State ---
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false, title: '', message: '', onConfirm: () => {}
@@ -457,6 +465,68 @@ export default function AdminDashboard() {
   const phase1Users = allUsers; 
   const phase2Users = allUsers.filter(u => u.selectedForRound2); 
   const finalists = allUsers.filter(u => u.isFinalist); 
+
+  // --- Analytics: university-wise counts ---
+  const universityCounts: Record<string, number> = {};
+  allUsers.forEach(u => {
+    const uni = u.university || 'Unknown';
+    universityCounts[uni] = (universityCounts[uni] || 0) + 1;
+  });
+  const universityList = Object.entries(universityCounts)
+    .sort((a, b) => b[1] - a[1]);
+
+  const uniqueUniversities = Object.keys(universityCounts).sort();
+
+  // --- Analytics: type counts ---
+  const teamCount = allUsers.filter(u => u.type === 'team').length;
+  const individualCount = allUsers.filter(u => u.type === 'individual').length;
+
+  // --- Analytics: proposal counts ---
+  const proposalSubmittedCount = allUsers.filter(u => u.proposalUploaded && u.proposalLink).length;
+  const proposalPendingCount = allUsers.length - proposalSubmittedCount;
+
+  // --- Analytics: participant counts by member total ---
+  const totalParticipants = allUsers.reduce((acc, u) => {
+    const teammates = u.teammates?.length || 0;
+    return acc + 1 + teammates; // leader + teammates
+  }, 0);
+
+  // --- Filtered users for the analytics panel table ---
+  const filteredUsers = allUsers.filter(u => {
+    if (filterUniversity && u.university !== filterUniversity) return false;
+    if (filterType !== 'all') {
+      if (filterType === 'team' && u.type !== 'team') return false;
+      if (filterType === 'individual' && u.type !== 'individual') return false;
+    }
+    if (filterPhase !== 'all') {
+      if (filterPhase === 'phase2' && !u.selectedForRound2) return false;
+      if (filterPhase === 'finalist' && !u.isFinalist) return false;
+    }
+    if (filterProposal !== 'all') {
+      if (filterProposal === 'submitted' && !(u.proposalUploaded && u.proposalLink)) return false;
+      if (filterProposal === 'pending' && (u.proposalUploaded && u.proposalLink)) return false;
+    }
+    if (filterSearch) {
+      const q = filterSearch.toLowerCase();
+      const name = u.type === 'team'
+        ? (u.teamName || '').toLowerCase()
+        : `${u.leader?.firstName || ''} ${u.leader?.lastName || ''}`.toLowerCase();
+      const email = (u.email || '').toLowerCase();
+      const uni = (u.university || '').toLowerCase();
+      if (!name.includes(q) && !email.includes(q) && !uni.includes(q)) return false;
+    }
+    return true;
+  });
+
+  const anyFilterActive = filterUniversity || filterType !== 'all' || filterPhase !== 'all' || filterProposal !== 'all' || filterSearch;
+
+  const clearFilters = () => {
+    setFilterUniversity('');
+    setFilterType('all');
+    setFilterPhase('all');
+    setFilterProposal('all');
+    setFilterSearch('');
+  };
 
   return (
     <div className="min-h-screen bg-[#05080C] text-white p-10 pt-24 pb-32 relative">
@@ -1146,6 +1216,360 @@ export default function AdminDashboard() {
           <p className="text-gray-600 font-mono text-[10px] mt-4">
             Excel exports include all fields including teammate details. PDF exports are landscape A3 for maximum readability.
           </p>
+        </div>
+
+
+        {/* ============================================================ */}
+        {/* REGISTRATION ANALYTICS & FILTERS                              */}
+        {/* ============================================================ */}
+        <div className="glass-panel border-[#00E5FF]/20 bg-[#121822]/50 p-6 mb-12 rounded-xl">
+          <div className="flex justify-between items-center flex-wrap gap-3 mb-0">
+            <h3 className="text-[#00E5FF] font-mono text-xs tracking-[0.25em] uppercase flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#00E5FF] inline-block animate-pulse" />
+              📊 Registration Analytics &amp; Filters
+            </h3>
+            <button
+              onClick={() => setShowAnalytics(!showAnalytics)}
+              className="text-xs font-mono tracking-widest uppercase border border-[#00E5FF]/40 text-[#00E5FF] hover:bg-[#00E5FF]/10 px-4 py-2 rounded transition-colors"
+            >
+              {showAnalytics ? 'COLLAPSE' : 'EXPAND'}
+            </button>
+          </div>
+
+          {showAnalytics && (
+            <div className="mt-6 animate-fade-in space-y-8">
+
+              {/* ── SUMMARY STAT CARDS ── */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                {[
+                  { label: 'Total Registrations', value: allUsers.length, color: 'text-white', border: 'border-white/10' },
+                  { label: 'Total Participants', value: totalParticipants, color: 'text-[#00E5FF]', border: 'border-[#00E5FF]/20' },
+                  { label: 'Teams', value: teamCount, color: 'text-purple-400', border: 'border-purple-500/20' },
+                  { label: 'Individuals', value: individualCount, color: 'text-pink-400', border: 'border-pink-500/20' },
+                  { label: 'Phase 2 Advanced', value: phase2Users.length, color: 'text-[#00E5FF]', border: 'border-[#00E5FF]/30' },
+                  { label: 'Finalists', value: finalists.length, color: 'text-[var(--gold)]', border: 'border-[var(--gold)]/30' },
+                ].map(({ label, value, color, border }) => (
+                  <div key={label} className={`glass-panel ${border} bg-[#05080C]/60 p-4 rounded-lg text-center`}>
+                    <p className="text-gray-500 font-mono text-[9px] uppercase tracking-widest mb-1">{label}</p>
+                    <p className={`text-2xl font-bold ${color}`}>{value}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* ── BREAKDOWN ROWS ── */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                {/* Team vs Individual breakdown */}
+                <div className="glass-panel border-white/5 bg-[#05080C]/50 p-5 rounded-lg">
+                  <p className="text-gray-400 font-mono text-[10px] uppercase tracking-widest mb-4 border-b border-white/10 pb-2">
+                    Registration Type Breakdown
+                  </p>
+                  <div className="space-y-3">
+                    {[
+                      { label: 'Team Registrations', count: teamCount, color: 'bg-purple-500', textColor: 'text-purple-400' },
+                      { label: 'Individual Registrations', count: individualCount, color: 'bg-pink-500', textColor: 'text-pink-400' },
+                    ].map(({ label, count, color, textColor }) => (
+                      <div key={label}>
+                        <div className="flex justify-between mb-1 font-mono text-xs">
+                          <span className={textColor}>{label}</span>
+                          <span className="text-white font-bold">{count}</span>
+                        </div>
+                        <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full ${color} rounded-full transition-all duration-700`}
+                            style={{ width: allUsers.length ? `${(count / allUsers.length) * 100}%` : '0%' }}
+                          />
+                        </div>
+                        <p className="text-gray-600 font-mono text-[10px] mt-0.5 text-right">
+                          {allUsers.length ? ((count / allUsers.length) * 100).toFixed(1) : 0}%
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Proposal submission breakdown */}
+                <div className="glass-panel border-white/5 bg-[#05080C]/50 p-5 rounded-lg">
+                  <p className="text-gray-400 font-mono text-[10px] uppercase tracking-widest mb-4 border-b border-white/10 pb-2">
+                    Proposal Submission Status
+                  </p>
+                  <div className="space-y-3">
+                    {[
+                      { label: 'Submitted', count: proposalSubmittedCount, color: 'bg-green-500', textColor: 'text-green-400' },
+                      { label: 'Pending / Not Uploaded', count: proposalPendingCount, color: 'bg-red-500', textColor: 'text-red-400' },
+                    ].map(({ label, count, color, textColor }) => (
+                      <div key={label}>
+                        <div className="flex justify-between mb-1 font-mono text-xs">
+                          <span className={textColor}>{label}</span>
+                          <span className="text-white font-bold">{count}</span>
+                        </div>
+                        <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full ${color} rounded-full transition-all duration-700`}
+                            style={{ width: allUsers.length ? `${(count / allUsers.length) * 100}%` : '0%' }}
+                          />
+                        </div>
+                        <p className="text-gray-600 font-mono text-[10px] mt-0.5 text-right">
+                          {allUsers.length ? ((count / allUsers.length) * 100).toFixed(1) : 0}%
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* ── UNIVERSITY-WISE TABLE ── */}
+              <div>
+                <p className="text-gray-400 font-mono text-[10px] uppercase tracking-widest mb-3 border-b border-white/10 pb-2">
+                  University-wise Registration Counts
+                </p>
+                {universityList.length === 0 ? (
+                  <p className="text-gray-500 font-mono text-xs text-center py-4">No data yet.</p>
+                ) : (
+                  <div className="overflow-x-auto rounded border border-white/5">
+                    <table className="w-full text-left text-xs font-mono">
+                      <thead className="bg-[#05080C] text-gray-500 uppercase tracking-wider">
+                        <tr>
+                          <th className="p-3 font-normal">#</th>
+                          <th className="p-3 font-normal">University</th>
+                          <th className="p-3 font-normal text-center">Registrations</th>
+                          <th className="p-3 font-normal text-center text-purple-400">Teams</th>
+                          <th className="p-3 font-normal text-center text-pink-400">Individuals</th>
+                          <th className="p-3 font-normal text-center text-[#00E5FF]">Phase 2</th>
+                          <th className="p-3 font-normal text-center text-[var(--gold)]">Finalists</th>
+                          <th className="p-3 font-normal text-right pr-4">Share</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {universityList.map(([uni, count], idx) => {
+                          const uniUsers = allUsers.filter(u => (u.university || 'Unknown') === uni);
+                          const uniTeams = uniUsers.filter(u => u.type === 'team').length;
+                          const uniIndividuals = uniUsers.filter(u => u.type === 'individual').length;
+                          const uniPhase2 = uniUsers.filter(u => u.selectedForRound2).length;
+                          const uniFinalists = uniUsers.filter(u => u.isFinalist).length;
+                          const share = allUsers.length ? ((count / allUsers.length) * 100).toFixed(1) : '0.0';
+                          return (
+                            <tr key={uni} className="hover:bg-white/5 transition-colors">
+                              <td className="p-3 text-gray-600">{idx + 1}</td>
+                              <td className="p-3 text-white max-w-[220px] truncate" title={uni}>{uni}</td>
+                              <td className="p-3 text-center font-bold text-white">{count}</td>
+                              <td className="p-3 text-center text-purple-400">{uniTeams}</td>
+                              <td className="p-3 text-center text-pink-400">{uniIndividuals}</td>
+                              <td className="p-3 text-center text-[#00E5FF]">{uniPhase2}</td>
+                              <td className="p-3 text-center text-[var(--gold)]">{uniFinalists}</td>
+                              <td className="p-3 text-right pr-4">
+                                <div className="flex items-center justify-end gap-2">
+                                  <div className="w-16 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                    <div
+                                      className="h-full bg-[#00E5FF] rounded-full"
+                                      style={{ width: `${share}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-gray-500 text-[10px] w-10 text-right">{share}%</span>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              {/* ── FILTERS ── */}
+              <div>
+                <div className="flex justify-between items-center mb-3 border-b border-white/10 pb-2">
+                  <p className="text-gray-400 font-mono text-[10px] uppercase tracking-widest">
+                    Filter Registered Teams / Individuals
+                  </p>
+                  {anyFilterActive && (
+                    <button
+                      onClick={clearFilters}
+                      className="text-[10px] font-mono tracking-widest uppercase text-red-400 border border-red-500/30 hover:bg-red-500/10 px-3 py-1 rounded transition-colors"
+                    >
+                      ✕ Clear Filters
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                  {/* Search */}
+                  <div>
+                    <label className="text-gray-500 font-mono text-[9px] uppercase tracking-widest mb-1 block">Search</label>
+                    <input
+                      type="text"
+                      placeholder="Name, email, university..."
+                      value={filterSearch}
+                      onChange={e => setFilterSearch(e.target.value)}
+                      className="w-full bg-[#05080C] border border-white/10 rounded px-3 py-2 text-xs text-white font-mono focus:border-[#00E5FF] focus:outline-none transition-colors"
+                    />
+                  </div>
+
+                  {/* University filter */}
+                  <div>
+                    <label className="text-gray-500 font-mono text-[9px] uppercase tracking-widest mb-1 block">University</label>
+                    <select
+                      value={filterUniversity}
+                      onChange={e => setFilterUniversity(e.target.value)}
+                      className="w-full bg-[#05080C] border border-white/10 rounded px-3 py-2 text-xs text-white font-mono focus:border-[#00E5FF] focus:outline-none transition-colors"
+                    >
+                      <option value="">All Universities</option>
+                      {uniqueUniversities.map(uni => (
+                        <option key={uni} value={uni}>{uni}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Type filter */}
+                  <div>
+                    <label className="text-gray-500 font-mono text-[9px] uppercase tracking-widest mb-1 block">Type</label>
+                    <div className="flex gap-1">
+                      {(['all', 'team', 'individual'] as const).map(t => (
+                        <button
+                          key={t}
+                          onClick={() => setFilterType(t)}
+                          className={`flex-1 py-2 rounded text-[10px] font-bold tracking-widest uppercase transition-all ${
+                            filterType === t
+                              ? 'bg-[#00E5FF]/20 text-[#00E5FF] border border-[#00E5FF]/50'
+                              : 'bg-[#05080C] border border-white/10 text-gray-500 hover:text-white'
+                          }`}
+                        >
+                          {t === 'all' ? 'All' : t === 'team' ? 'Team' : 'Solo'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Phase / Status filter */}
+                  <div>
+                    <label className="text-gray-500 font-mono text-[9px] uppercase tracking-widest mb-1 block">Phase Status</label>
+                    <div className="flex gap-1">
+                      {([
+                        { v: 'all', label: 'All' },
+                        { v: 'phase2', label: 'P2' },
+                        { v: 'finalist', label: 'Final' },
+                      ] as { v: 'all' | 'phase2' | 'finalist'; label: string }[]).map(({ v, label }) => (
+                        <button
+                          key={v}
+                          onClick={() => setFilterPhase(v)}
+                          className={`flex-1 py-2 rounded text-[10px] font-bold tracking-widest uppercase transition-all ${
+                            filterPhase === v
+                              ? v === 'finalist'
+                                ? 'bg-[var(--gold)]/20 text-[var(--gold)] border border-[var(--gold)]/50'
+                                : 'bg-[#00E5FF]/20 text-[#00E5FF] border border-[#00E5FF]/50'
+                              : 'bg-[#05080C] border border-white/10 text-gray-500 hover:text-white'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Proposal filter row */}
+                <div className="flex flex-wrap gap-2 mb-5">
+                  <span className="text-gray-500 font-mono text-[9px] uppercase tracking-widest self-center">Proposal:</span>
+                  {([
+                    { v: 'all', label: 'All' },
+                    { v: 'submitted', label: 'Submitted' },
+                    { v: 'pending', label: 'Pending' },
+                  ] as { v: 'all' | 'submitted' | 'pending'; label: string }[]).map(({ v, label }) => (
+                    <button
+                      key={v}
+                      onClick={() => setFilterProposal(v)}
+                      className={`py-1.5 px-4 rounded text-[10px] font-bold tracking-widest uppercase transition-all ${
+                        filterProposal === v
+                          ? v === 'submitted'
+                            ? 'bg-green-500/20 text-green-400 border border-green-500/40'
+                            : v === 'pending'
+                            ? 'bg-red-500/20 text-red-400 border border-red-500/40'
+                            : 'bg-[#00E5FF]/20 text-[#00E5FF] border border-[#00E5FF]/40'
+                          : 'bg-[#05080C] border border-white/10 text-gray-500 hover:text-white'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Filtered results table */}
+                <div>
+                  <p className="text-gray-500 font-mono text-[10px] uppercase tracking-widest mb-2">
+                    Results — {filteredUsers.length} record{filteredUsers.length !== 1 ? 's' : ''}
+                    {anyFilterActive && <span className="text-[#00E5FF] ml-2">(filtered)</span>}
+                  </p>
+                  <div className="overflow-x-auto rounded border border-white/5">
+                    <table className="w-full text-left text-xs font-mono whitespace-nowrap">
+                      <thead className="bg-[#05080C] text-gray-500 uppercase tracking-wider">
+                        <tr>
+                          <th className="p-3 font-normal">Name / Team</th>
+                          <th className="p-3 font-normal">University</th>
+                          <th className="p-3 font-normal text-center">Type</th>
+                          <th className="p-3 font-normal text-center">Proposal</th>
+                          <th className="p-3 font-normal text-center text-[#00E5FF]">Phase 2</th>
+                          <th className="p-3 font-normal text-center text-[var(--gold)]">Finalist</th>
+                          <th className="p-3 font-normal text-center">Details</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {filteredUsers.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="p-8 text-center text-gray-500 font-mono text-xs">
+                              No records match the current filters.
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredUsers.map(user => (
+                            <tr key={user.id} className="hover:bg-white/5 transition-colors">
+                              <td className="p-3 text-white font-bold">
+                                {user.type === 'team' ? user.teamName : `${user.leader?.firstName} ${user.leader?.lastName}`}
+                              </td>
+                              <td className="p-3 text-gray-400 max-w-[180px] truncate" title={user.university}>{user.university}</td>
+                              <td className="p-3 text-center">
+                                <span className={`text-[9px] font-mono px-2 py-0.5 rounded uppercase ${
+                                  user.type === 'team'
+                                    ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                                    : 'bg-pink-500/20 text-pink-400 border border-pink-500/30'
+                                }`}>
+                                  {user.type}
+                                </span>
+                              </td>
+                              <td className="p-3 text-center">
+                                {user.proposalUploaded && user.proposalLink
+                                  ? <span className="text-green-400 font-bold">✔</span>
+                                  : <span className="text-red-500/60">✖</span>}
+                              </td>
+                              <td className="p-3 text-center">
+                                {user.selectedForRound2
+                                  ? <span className="text-[#00E5FF] font-bold">✔</span>
+                                  : <span className="text-gray-600">—</span>}
+                              </td>
+                              <td className="p-3 text-center">
+                                {user.isFinalist
+                                  ? <span className="text-[var(--gold)] font-bold">🏆</span>
+                                  : <span className="text-gray-600">—</span>}
+                              </td>
+                              <td className="p-3 text-center">
+                                <button
+                                  onClick={() => setSelectedUser(user)}
+                                  className="text-[10px] font-mono font-bold tracking-widest text-[#00E5FF] border border-[#00E5FF]/50 hover:bg-[#00E5FF]/10 px-3 py-1 rounded transition-colors"
+                                >
+                                  VIEW
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          )}
         </div>
 
 
