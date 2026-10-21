@@ -123,8 +123,8 @@ const PARTNERS = [
     description: 'Loons Lab is an engineering-first software company dedicated to designing digital solutions that transform industries, enhance healthcare, and empower governments.',
   },
   {
-    tier: 'Gift',
-    badge: '/GiftPartner.png',
+    tier: 'Leisure',
+    badge: '/LeisurePartner.png',
     logo: '/sponsors/pearlbay.png',
     logoBg: '#FFFFFF',
     company: 'Pearl Bay',
