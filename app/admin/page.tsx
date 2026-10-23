@@ -18,6 +18,17 @@ export default function AdminDashboard() {
   const [systemConfig, setSystemConfig] = useState<any>(null);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [passkeyInput, setPasskeyInput] = useState('');
+
+  // --- Phase 1 Judge Panels State ---
+  const [numJudges, setNumJudges] = useState(1);
+  const [judgePanels, setJudgePanels] = useState<any[]>([]);
+  const [panelJudgeNames, setPanelJudgeNames] = useState<Record<number, string>>({});
+  const [zipDownloading, setZipDownloading] = useState<number | null>(null); // panel id, or -1 for all
+
+  // --- Phase 2 Judge Panels State ---
+  const [numPhase2Judges, setNumPhase2Judges] = useState(1);
+  const [judgePhase2Panels, setJudgePhase2Panels] = useState<any[]>([]);
+  const [phase2PanelJudgeNames, setPhase2PanelJudgeNames] = useState<Record<number, string>>({});
   
   const [p1Deadline, setP1Deadline] = useState('');
   const [p2Deadline, setP2Deadline] = useState('');
@@ -90,6 +101,26 @@ export default function AdminDashboard() {
               setPasskeyInput('innovax2026');
             }
           });
+
+          // Load existing judge panels
+          const panelsSnap = await getDoc(doc(db, "settings", "judgePanels"));
+          if (panelsSnap.exists() && panelsSnap.data().panels) {
+            const panels = panelsSnap.data().panels;
+            setJudgePanels(panels);
+            const names: Record<number, string> = {};
+            panels.forEach((p: any) => { names[p.id] = p.name || ''; });
+            setPanelJudgeNames(names);
+          }
+
+          // Load existing Phase 2 judge panels
+          const phase2PanelsSnap = await getDoc(doc(db, "settings", "judgePhase2Panels"));
+          if (phase2PanelsSnap.exists() && phase2PanelsSnap.data().panels) {
+            const panels = phase2PanelsSnap.data().panels;
+            setJudgePhase2Panels(panels);
+            const names: Record<number, string> = {};
+            panels.forEach((p: any) => { names[p.id] = p.name || ''; });
+            setPhase2PanelJudgeNames(names);
+          }
 
           fetchUsers();
         } else {
@@ -419,6 +450,169 @@ export default function AdminDashboard() {
     }
   };
 
+  // ─── Judge Panel Functions ──────────────────────────────────────────────────
+  const generatePasskey = (): string => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let result = 'JDG-';
+    for (let i = 0; i < 8; i++) result += chars[Math.floor(Math.random() * chars.length)];
+    return result;
+  };
+
+  const handleGenerateJudgePanels = () => {
+    const n = numJudges;
+    if (n < 1 || n > 20) return alert('Number of judges must be between 1 and 20.');
+
+    const submittedProposals = allUsers.filter(u => u.proposalUploaded && u.proposalLink);
+    if (submittedProposals.length === 0) {
+      return alert('No submitted proposals found yet. Proposals must be uploaded first.');
+    }
+
+    requestAction(
+      'GENERATE JUDGE PANELS',
+      `This will create ${n} judge panel${n > 1 ? 's' : ''} and distribute ${submittedProposals.length} proposal${submittedProposals.length !== 1 ? 's' : ''} equally. Each judge gets a unique passkey. Continue?`,
+      async () => {
+        const panels: any[] = [];
+        const baseCount = Math.floor(submittedProposals.length / n);
+        const extras = submittedProposals.length % n;
+        let idx = 0;
+        for (let i = 0; i < n; i++) {
+          const count = i < extras ? baseCount + 1 : baseCount;
+          const assigned = submittedProposals.slice(idx, idx + count);
+          idx += count;
+          // Preserve existing judge name if panels were already set
+          const existing = judgePanels.find(p => p.id === i + 1);
+          panels.push({
+            id: i + 1,
+            name: existing?.name || panelJudgeNames[i + 1] || '',
+            passkey: generatePasskey(),
+            assignedUserIds: assigned.map(u => u.id),
+          });
+        }
+        await setDoc(doc(db, 'settings', 'judgePanels'), { panels });
+        setJudgePanels(panels);
+        const names: Record<number, string> = {};
+        panels.forEach(p => { names[p.id] = p.name || ''; });
+        setPanelJudgeNames(names);
+        alert(`✓ ${n} judge panel${n > 1 ? 's' : ''} generated successfully!`);
+      }
+    );
+  };
+
+  const saveJudgeName = async (panelId: number, name: string) => {
+    const updated = judgePanels.map(p => p.id === panelId ? { ...p, name } : p);
+    try {
+      await setDoc(doc(db, 'settings', 'judgePanels'), { panels: updated });
+      setJudgePanels(updated);
+    } catch {
+      alert('Failed to save judge name.');
+    }
+  };
+
+  const downloadJudgeZip = async (panelId: number) => {
+    setZipDownloading(panelId);
+    try {
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+
+      let proposals: any[];
+      let zipName: string;
+
+      if (panelId === -1) {
+        proposals = allUsers.filter(u => u.proposalUploaded && u.proposalLink);
+        zipName = 'All_Proposals';
+      } else {
+        const panel = judgePanels.find(p => p.id === panelId);
+        if (!panel) return;
+        proposals = allUsers.filter(u => panel.assignedUserIds.includes(u.id) && u.proposalLink);
+        const label = panel.name ? panel.name : `Panel_${panel.id}`;
+        zipName = `Judge_${label}_Proposals`;
+      }
+
+      if (proposals.length === 0) {
+        alert('No proposal PDFs found for this selection.');
+        return;
+      }
+
+      for (const u of proposals) {
+        try {
+          const response = await fetch(u.proposalLink);
+          const blob = await response.blob();
+          const rawName = u.type === 'team'
+            ? u.teamName
+            : `${u.leader?.firstName}_${u.leader?.lastName}`;
+          const safeName = (rawName || u.id).replace(/[^a-z0-9_-]/gi, '_');
+          zip.file(`${safeName}.pdf`, blob);
+        } catch {
+          console.error('Failed to fetch PDF for', u.id);
+        }
+      }
+
+      const content = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(content);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${zipName}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      alert('ZIP download failed: ' + err.message);
+    } finally {
+      setZipDownloading(null);
+    }
+  };
+  // ────────────────────────────────────────────────────────────────────────────
+
+  // ─── Phase 2 Judge Panel Functions ─────────────────────────────────────────
+  const handleGeneratePhase2JudgePanels = () => {
+    const n = numPhase2Judges;
+    if (n < 1 || n > 20) return alert('Number of judges must be between 1 and 20.');
+
+    const phase2Participants = allUsers.filter(u => u.selectedForRound2);
+    if (phase2Participants.length === 0) {
+      return alert('No Phase 2 participants found yet. Select candidates for Round 2 first.');
+    }
+
+    requestAction(
+      'GENERATE PHASE 2 JUDGE PANELS',
+      `This will create ${n} Phase 2 judge panel${n > 1 ? 's' : ''} and distribute ${phase2Participants.length} prototype${phase2Participants.length !== 1 ? 's' : ''} equally. Each judge gets a unique passkey. Continue?`,
+      async () => {
+        const panels: any[] = [];
+        const baseCount = Math.floor(phase2Participants.length / n);
+        const extras = phase2Participants.length % n;
+        let idx = 0;
+        for (let i = 0; i < n; i++) {
+          const count = i < extras ? baseCount + 1 : baseCount;
+          const assigned = phase2Participants.slice(idx, idx + count);
+          idx += count;
+          const existing = judgePhase2Panels.find((p: any) => p.id === i + 1);
+          panels.push({
+            id: i + 1,
+            name: existing?.name || phase2PanelJudgeNames[i + 1] || '',
+            passkey: generatePasskey(),
+            assignedUserIds: assigned.map((u: any) => u.id),
+          });
+        }
+        await setDoc(doc(db, 'settings', 'judgePhase2Panels'), { panels });
+        setJudgePhase2Panels(panels);
+        const names: Record<number, string> = {};
+        panels.forEach((p: any) => { names[p.id] = p.name || ''; });
+        setPhase2PanelJudgeNames(names);
+        alert(`✓ ${n} Phase 2 judge panel${n > 1 ? 's' : ''} generated successfully!`);
+      }
+    );
+  };
+
+  const savePhase2JudgeName = async (panelId: number, name: string) => {
+    const updated = judgePhase2Panels.map((p: any) => p.id === panelId ? { ...p, name } : p);
+    try {
+      await setDoc(doc(db, 'settings', 'judgePhase2Panels'), { panels: updated });
+      setJudgePhase2Panels(updated);
+    } catch {
+      alert('Failed to save judge name.');
+    }
+  };
+  // ────────────────────────────────────────────────────────────────────────────
+
   const handleLogout = () => {
     requestAction(
       "TERMINATE SESSION",
@@ -615,6 +809,16 @@ export default function AdminDashboard() {
                     No Video
                   </div>
                 )}
+
+                {selectedUser.githubLink ? (
+                  <a href={selectedUser.githubLink} target="_blank" className="flex-1 text-center bg-purple-500/10 text-purple-400 border border-purple-500/30 px-4 py-3 rounded text-xs font-bold tracking-widest uppercase hover:bg-purple-500/20 transition-colors">
+                    ⎇ View GitHub Repo
+                  </a>
+                ) : (
+                  <div className="flex-1 text-center bg-red-500/5 text-red-500/50 border border-red-500/10 px-4 py-3 rounded text-xs font-bold tracking-widest uppercase">
+                    No GitHub Repo
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -710,16 +914,15 @@ export default function AdminDashboard() {
         </div>
         <br /><br /><br />
         <div className="glass-panel border-white/10 bg-[#121822]/50 p-6 mb-12">
-          <h2 className="text-[#00E5FF] font-mono text-xs tracking-[0.2em] uppercase mb-4">
-            Judges Portal Access
+          <h2 className="text-[#00E5FF] font-mono text-xs tracking-[0.2em] uppercase mb-6">
+            ⚖️ Judges Portal Access
           </h2>
 
-          {/* Judges Portal Link */}
-          <div className="mb-5">
+          {/* Portal URL */}
+          <div className="mb-6">
             <p className="text-gray-500 font-mono text-[10px] uppercase tracking-widest mb-2">
               Judges Portal URL
             </p>
-
             <a
               href="/judges"
               target="_blank"
@@ -728,27 +931,240 @@ export default function AdminDashboard() {
             >
               🔗 Open Judges Portal
             </a>
-
             <p className="text-gray-600 text-[10px] mt-2">
-              This link automatically works in both local development and production hosting.
+              All judges use the same URL — their passkey determines which proposals they see.
             </p>
           </div>
 
-          {/* Passkey */}
-          <div className="flex gap-4 items-center mb-4">
-            <input
-              type="text"
-              value={passkeyInput}
-              onChange={(e) => setPasskeyInput(e.target.value)}
-              className="bg-[#05080C] border border-white/10 rounded p-2 text-white font-mono text-sm w-full max-w-sm focus:border-[#00E5FF] focus:outline-none"
-            />
+          {/* Legacy single passkey */}
+          <div className="mb-8 pb-8 border-b border-white/10">
+            <p className="text-gray-500 font-mono text-[10px] uppercase tracking-widest mb-3">
+              Legacy Single Passkey (fallback)
+            </p>
+            <div className="flex gap-4 items-center">
+              <input
+                type="text"
+                value={passkeyInput}
+                onChange={(e) => setPasskeyInput(e.target.value)}
+                className="bg-[#05080C] border border-white/10 rounded p-2 text-white font-mono text-sm w-full max-w-sm focus:border-[#00E5FF] focus:outline-none"
+              />
+              <button
+                onClick={updatePasskey}
+                className="text-xs border border-[#00E5FF] text-[#00E5FF] hover:bg-[#00E5FF]/10 px-4 py-2 rounded transition-colors"
+              >
+                UPDATE KEY
+              </button>
+            </div>
+          </div>
 
-            <button
-              onClick={updatePasskey}
-              className="text-xs border border-[#00E5FF] text-[#00E5FF] hover:bg-[#00E5FF]/10 px-4 py-2 rounded transition-colors"
-            >
-              UPDATE KEY
-            </button>
+          {/* ── Multi-Judge Panels ── */}
+          <div>
+            <p className="text-[#00E5FF] font-mono text-[10px] uppercase tracking-widest mb-5">
+              Multi-Judge Panels
+            </p>
+
+            {/* Generator row */}
+            <div className="flex gap-4 items-end flex-wrap mb-6">
+              <div>
+                <label className="text-gray-500 font-mono text-[10px] uppercase tracking-widest mb-1 block">
+                  Number of Judges
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={numJudges}
+                  onChange={e => setNumJudges(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="bg-[#05080C] border border-white/10 rounded p-2 text-white font-mono text-sm w-28 focus:border-[#00E5FF] focus:outline-none"
+                />
+              </div>
+              <button
+                onClick={handleGenerateJudgePanels}
+                className="py-2 px-5 rounded text-xs font-bold tracking-widest uppercase bg-[#00E5FF]/20 text-[#00E5FF] border border-[#00E5FF]/50 hover:bg-[#00E5FF]/30 transition-all"
+              >
+                ⚡ Generate Panels
+              </button>
+              <p className="text-gray-500 font-mono text-[10px] self-end pb-2">
+                {allUsers.filter(u => u.proposalUploaded && u.proposalLink).length} proposals submitted · will be split equally
+              </p>
+            </div>
+
+            {/* Panels table */}
+            {judgePanels.length > 0 ? (
+              <div>
+                <div className="overflow-x-auto rounded border border-[#00E5FF]/20 mb-4">
+                  <table className="w-full text-left text-sm font-mono whitespace-nowrap">
+                    <thead className="bg-[#05080C] text-gray-500 text-xs uppercase tracking-wider">
+                      <tr>
+                        <th className="p-4 font-normal">#</th>
+                        <th className="p-4 font-normal">Judge Name (optional)</th>
+                        <th className="p-4 font-normal">Passkey</th>
+                        <th className="p-4 font-normal text-center">Proposals</th>
+                        <th className="p-4 font-normal text-center">Copy Link + PW</th>
+                        <th className="p-4 font-normal text-center">Download PDFs</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {judgePanels.map(panel => (
+                        <tr key={panel.id} className="hover:bg-white/5 transition-colors">
+                          <td className="p-4 text-gray-500 font-bold">J{panel.id}</td>
+                          <td className="p-4">
+                            <input
+                              type="text"
+                              placeholder="e.g. Dr. Smith"
+                              value={panelJudgeNames[panel.id] ?? panel.name ?? ''}
+                              onChange={e => setPanelJudgeNames({ ...panelJudgeNames, [panel.id]: e.target.value })}
+                              onBlur={e => saveJudgeName(panel.id, e.target.value)}
+                              className="bg-[#05080C] border border-white/10 rounded px-3 py-1.5 text-white text-xs font-mono w-44 focus:border-[#00E5FF] focus:outline-none transition-colors"
+                            />
+                          </td>
+                          <td className="p-4">
+                            <span className="bg-[#00E5FF]/10 text-[#00E5FF] border border-[#00E5FF]/30 px-3 py-1 rounded font-mono text-xs tracking-widest">
+                              {panel.passkey}
+                            </span>
+                          </td>
+                          <td className="p-4 text-center">
+                            <span className="text-white font-bold">{panel.assignedUserIds?.length || 0}</span>
+                          </td>
+                          <td className="p-4 text-center">
+                            <button
+                              onClick={() => {
+                                const url = typeof window !== 'undefined' ? window.location.origin + '/judges' : '/judges';
+                                const text = `Judges Portal\nURL: ${url}\nPasskey: ${panel.passkey}${panelJudgeNames[panel.id] ? `\nJudge: ${panelJudgeNames[panel.id]}` : ''}`;
+                                navigator.clipboard.writeText(text);
+                                alert('✓ Link & passkey copied to clipboard!');
+                              }}
+                              className="text-[10px] font-mono tracking-widest uppercase text-[#00E5FF] border border-[#00E5FF]/40 hover:bg-[#00E5FF]/10 px-3 py-1.5 rounded transition-colors"
+                            >
+                              📋 Copy
+                            </button>
+                          </td>
+                          <td className="p-4 text-center">
+                            <button
+                              onClick={() => downloadJudgeZip(panel.id)}
+                              disabled={zipDownloading !== null || !panel.assignedUserIds?.length}
+                              className="text-[10px] font-mono tracking-widest uppercase text-green-400 border border-green-500/40 hover:bg-green-500/10 px-3 py-1.5 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                              {zipDownloading === panel.id ? '⏳ Zipping...' : '📦 ZIP'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Download ALL button */}
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => downloadJudgeZip(-1)}
+                    disabled={zipDownloading !== null}
+                    className="text-xs font-bold tracking-widest uppercase bg-green-500/10 text-green-400 border border-green-500/40 hover:bg-green-500/20 px-5 py-2.5 rounded transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {zipDownloading === -1 ? '⏳ Zipping All...' : '📦 Download ALL Proposals (All Judges Combined)'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-600 font-mono text-xs text-center py-6 border border-white/5 rounded">
+                No judge panels generated yet. Set the number of judges above and click "⚡ Generate Panels".
+              </p>
+            )}
+          </div>
+
+          {/* ── Phase 2 Multi-Judge Panels ── */}
+          <div className="mt-8 pt-8 border-t border-white/10">
+            <p className="text-[var(--gold)] font-mono text-[10px] uppercase tracking-widest mb-1">
+              Phase 2 Multi-Judge Panels (Prototypes)
+            </p>
+            <p className="text-gray-600 font-mono text-[10px] mb-5">
+              Assign Phase 2 judges to prototype participants. Each judge gets a unique passkey giving access to only their assigned prototypes in the judges portal.
+            </p>
+
+            {/* Generator row */}
+            <div className="flex gap-4 items-end flex-wrap mb-6">
+              <div>
+                <label className="text-gray-500 font-mono text-[10px] uppercase tracking-widest mb-1 block">
+                  Number of Judges
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={numPhase2Judges}
+                  onChange={e => setNumPhase2Judges(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="bg-[#05080C] border border-white/10 rounded p-2 text-white font-mono text-sm w-28 focus:border-[var(--gold)] focus:outline-none"
+                />
+              </div>
+              <button
+                onClick={handleGeneratePhase2JudgePanels}
+                className="py-2 px-5 rounded text-xs font-bold tracking-widest uppercase bg-[var(--gold)]/20 text-[var(--gold)] border border-[var(--gold)]/50 hover:bg-[var(--gold)]/30 transition-all"
+              >
+                ⚡ Generate Phase 2 Panels
+              </button>
+              <p className="text-gray-500 font-mono text-[10px] self-end pb-2">
+                {allUsers.filter(u => u.selectedForRound2).length} Phase 2 participants · will be split equally
+              </p>
+            </div>
+
+            {/* Phase 2 Panels table */}
+            {judgePhase2Panels.length > 0 ? (
+              <div className="overflow-x-auto rounded border border-[var(--gold)]/20">
+                <table className="w-full text-left text-sm font-mono whitespace-nowrap">
+                  <thead className="bg-[#05080C] text-gray-500 text-xs uppercase tracking-wider">
+                    <tr>
+                      <th className="p-4 font-normal">#</th>
+                      <th className="p-4 font-normal">Judge Name (optional)</th>
+                      <th className="p-4 font-normal">Passkey</th>
+                      <th className="p-4 font-normal text-center">Prototypes</th>
+                      <th className="p-4 font-normal text-center">Copy Link + PW</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {judgePhase2Panels.map((panel: any) => (
+                      <tr key={panel.id} className="hover:bg-white/5 transition-colors">
+                        <td className="p-4 text-[var(--gold)]/60 font-bold">P2-J{panel.id}</td>
+                        <td className="p-4">
+                          <input
+                            type="text"
+                            placeholder="e.g. Dr. Smith"
+                            value={phase2PanelJudgeNames[panel.id] ?? panel.name ?? ''}
+                            onChange={e => setPhase2PanelJudgeNames({ ...phase2PanelJudgeNames, [panel.id]: e.target.value })}
+                            onBlur={e => savePhase2JudgeName(panel.id, e.target.value)}
+                            className="bg-[#05080C] border border-white/10 rounded px-3 py-1.5 text-white text-xs font-mono w-44 focus:border-[var(--gold)] focus:outline-none transition-colors"
+                          />
+                        </td>
+                        <td className="p-4">
+                          <span className="bg-[var(--gold)]/10 text-[var(--gold)] border border-[var(--gold)]/30 px-3 py-1 rounded font-mono text-xs tracking-widest">
+                            {panel.passkey}
+                          </span>
+                        </td>
+                        <td className="p-4 text-center">
+                          <span className="text-white font-bold">{panel.assignedUserIds?.length || 0}</span>
+                        </td>
+                        <td className="p-4 text-center">
+                          <button
+                            onClick={() => {
+                              const url = typeof window !== 'undefined' ? window.location.origin + '/judges' : '/judges';
+                              const text = `Judges Portal (Phase 2 — Prototypes)\nURL: ${url}\nPasskey: ${panel.passkey}${phase2PanelJudgeNames[panel.id] ? `\nJudge: ${phase2PanelJudgeNames[panel.id]}` : ''}`;
+                              navigator.clipboard.writeText(text);
+                              alert('✓ Phase 2 link & passkey copied to clipboard!');
+                            }}
+                            className="text-[10px] font-mono tracking-widest uppercase text-[var(--gold)] border border-[var(--gold)]/40 hover:bg-[var(--gold)]/10 px-3 py-1.5 rounded transition-colors"
+                          >
+                            📋 Copy
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-gray-600 font-mono text-xs text-center py-6 border border-white/5 rounded">
+                No Phase 2 judge panels generated yet. Set the number of judges above and click "⚡ Generate Phase 2 Panels".
+              </p>
+            )}
           </div>
         </div>
 

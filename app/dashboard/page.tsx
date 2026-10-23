@@ -84,6 +84,7 @@ export default function Dashboard() {
 
   const [proposalUploaded, setProposalUploaded] = useState(false);
   const [videoLink, setVideoLink] = useState('');
+  const [githubLink, setGithubLink] = useState('');
   const [uploadingDoc, setUploadingDoc] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [dragActive, setDragActive] = useState(false);
@@ -108,6 +109,7 @@ export default function Dashboard() {
             setUserData(data);
             setProposalUploaded(data.proposalUploaded || false);
             setVideoLink(data.prototypeLink || '');
+            setGithubLink(data.githubLink || '');
           } else {
             document.cookie = 'innovax_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
             signOut(auth);
@@ -151,20 +153,46 @@ export default function Dashboard() {
     systemConfig?.phase2Open && !isPhase2Expired ? systemConfig?.phase2Deadline : null
   );
 
+  /** Builds the canonical filename from the user's registration data */
+  const buildProposalFilename = useCallback(
+    (ext: string): string => {
+      const sanitize = (s: string) =>
+        (s || '').trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+      const uni = sanitize(userData?.university ?? '');
+
+      let baseName: string;
+      if (userData?.type === 'team') {
+        baseName = sanitize(userData?.teamName ?? 'Team');
+      } else {
+        const first = sanitize(userData?.leader?.firstName ?? '');
+        const last  = sanitize(userData?.leader?.lastName  ?? '');
+        baseName = `${first}_${last}`;
+      }
+
+      return `${baseName}-${uni}.${ext}`;
+    },
+    [userData]
+  );
+
   const processFile = useCallback(
     async (file: File) => {
       if (isPhase1Expired) {
         return showToast('Submission deadline has passed. Modifications are locked.', 'error');
       }
-      if (file.size > 10 * 1024 * 1024) {
-        return showToast('File is too large. Please upload a PDF under 10MB.', 'error');
+      if (file.size > 15 * 1024 * 1024) {
+        return showToast('File is too large. Please upload a PDF under 15 MB.', 'error');
       }
+
+      // Derive the canonical extension and rename the file before upload
+      const rawExt = file.name.split('.').pop()?.toLowerCase() || 'pdf';
+      const newName = buildProposalFilename(rawExt);
+      const renamedFile = new File([file], newName, { type: file.type });
 
       setUploadingDoc(true);
       setUploadProgress(0);
 
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', renamedFile);
       formData.append('upload_preset', 'innovax_proposals');
 
       try {
@@ -191,7 +219,7 @@ export default function Dashboard() {
       setUploadingDoc(false);
       setUploadProgress(0);
     },
-    [isPhase1Expired]
+    [isPhase1Expired, buildProposalFilename]
   );
 
   const handleDocumentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -236,16 +264,17 @@ export default function Dashboard() {
     if (isPhase2Expired) {
       return showToast('Submission deadline has passed. Modifications are locked.', 'error');
     }
-    if (!videoLink.trim()) return;
+    if (!videoLink.trim() && !githubLink.trim()) return;
 
     setUpdating(true);
     try {
       await updateDoc(doc(db, 'registrations', auth.currentUser!.uid), {
         prototypeLink: videoLink.trim(),
+        githubLink: githubLink.trim(),
       });
-      showToast('System Updated: Video link submitted successfully!', 'success');
+      showToast('System Updated: Submission links saved successfully!', 'success');
     } catch (err) {
-      showToast('Failed to submit link. Please try again.', 'error');
+      showToast('Failed to submit links. Please try again.', 'error');
     }
     setUpdating(false);
   };
@@ -549,10 +578,23 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   <>
-                    <p className="text-xs md:text-sm text-gray-400 mb-5 leading-relaxed">
-                      Upload your architecture proposal (PDF format, max 10MB). This file is
+                    <p className="text-xs md:text-sm text-gray-400 mb-4 leading-relaxed">
+                      Upload your architecture proposal (PDF format, max 15 MB). This file is
                       transmitted directly to the judging panel.
                     </p>
+
+                    {/* Filename preview */}
+                    <div className="mb-5 p-3 rounded-lg border border-[#00E5FF]/20 bg-[#00E5FF]/5 flex items-start gap-3">
+                      <span className="text-[#00E5FF] mt-0.5 flex-shrink-0">📄</span>
+                      <div>
+                        <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">
+                          Your file will be saved as
+                        </p>
+                        <p className="text-[#00E5FF] font-mono text-xs break-all font-bold">
+                          {buildProposalFilename('pdf')}
+                        </p>
+                      </div>
+                    </div>
 
                     <label
                       onDragOver={(e) => {
@@ -593,7 +635,7 @@ export default function Dashboard() {
                             Drag &amp; drop your file, or{' '}
                             <span className="text-[#00E5FF] underline">browse</span>
                           </p>
-                          <p className="text-[10px] font-mono text-gray-500">PDF, DOC, DOCX · up to 10MB</p>
+                          <p className="text-[10px] font-mono text-gray-500">PDF · up to 15 MB</p>
                         </>
                       )}
                     </label>
@@ -605,21 +647,32 @@ export default function Dashboard() {
         ) : null}
 
         {/* --- PHASE 2: PROTOTYPE & VIDEO SUBMISSION --- */}
-        {systemConfig?.phase2Open && userData?.selectedForRound2 && systemConfig?.round2Revealed ? (
+        {systemConfig?.phase2Open && userData?.selectedForRound2 ? (
           <div className="glass-panel border-[var(--gold)]/40 mb-8 bg-[var(--gold)]/5 p-6 md:p-8 rounded-xl shadow-[0_0_30px_rgba(255,215,0,0.05)]">
             <div className="flex justify-between items-start flex-wrap gap-4 mb-2">
               <h2 className="text-[var(--gold)] font-display font-bold text-xl tracking-wide">
                 Phase 2: Prototype &amp; Demo Video
               </h2>
-              {userData?.prototypeLink ? (
-                <span className="text-xs font-mono text-green-400 border border-green-500/30 bg-green-500/10 px-3 py-1 rounded">
-                  ✔ Demo link submitted
-                </span>
-              ) : (
-                <span className="text-xs font-mono text-yellow-400 border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 rounded">
-                  Awaiting demo link
-                </span>
-              )}
+              <div className="flex flex-wrap gap-2">
+                {userData?.prototypeLink ? (
+                  <span className="text-xs font-mono text-green-400 border border-green-500/30 bg-green-500/10 px-3 py-1 rounded">
+                    ✔ Video submitted
+                  </span>
+                ) : (
+                  <span className="text-xs font-mono text-yellow-400 border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 rounded">
+                    Awaiting demo video
+                  </span>
+                )}
+                {userData?.githubLink ? (
+                  <span className="text-xs font-mono text-green-400 border border-green-500/30 bg-green-500/10 px-3 py-1 rounded">
+                    ✔ GitHub submitted
+                  </span>
+                ) : (
+                  <span className="text-xs font-mono text-yellow-400 border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 rounded">
+                    Awaiting GitHub repo
+                  </span>
+                )}
+              </div>
             </div>
 
             {phase2Countdown && !phase2Countdown.expired && (
@@ -652,35 +705,58 @@ export default function Dashboard() {
             ) : (
               <>
                 <p className="text-xs md:text-sm text-gray-400 mb-6 leading-relaxed">
-                  Provide the link to your demo video (e.g., YouTube, LinkedIn, or Cloud Storage)
-                  for final evaluation.
+                  Submit your demo video link and open GitHub repository so the judging panel
+                  can review your prototype. Both links are required for full evaluation.
                 </p>
 
-                <div className="flex flex-col sm:flex-row gap-3 mb-3">
+                {/* Demo Video Link */}
+                <div className="mb-5">
+                  <label className="flex items-center gap-2 text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">
+                    <span className="text-[var(--gold)]">▶</span> Demo Video Link
+                    <span className="text-gray-600">(YouTube, LinkedIn, Cloud Storage…)</span>
+                  </label>
                   <input
                     type="url"
                     placeholder="https://youtube.com/watch?v=..."
                     value={videoLink}
                     onChange={(e) => setVideoLink(e.target.value)}
-                    className="flex-1 bg-[#05080C] border border-white/10 rounded-lg p-3 text-white text-xs font-mono focus:border-[var(--gold)] focus:outline-none transition-colors"
+                    className="w-full bg-[#05080C] border border-white/10 rounded-lg p-3 text-white text-xs font-mono focus:border-[var(--gold)] focus:outline-none transition-colors"
                   />
-                  <button
-                    onClick={handleVideoSubmit}
-                    disabled={updating || !videoLink.trim()}
-                    className="px-6 py-3 rounded-lg text-xs font-bold font-mono tracking-widest uppercase bg-[var(--gold)]/20 text-[var(--gold)] border border-[var(--gold)]/50 hover:bg-[var(--gold)]/30 disabled:opacity-50 transition-all"
-                  >
-                    {updating ? 'Saving…' : 'Save link'}
-                  </button>
                 </div>
 
-                {userData?.prototypeLink && (
+                {/* GitHub Repo Link */}
+                <div className="mb-6">
+                  <label className="flex items-center gap-2 text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">
+                    <span className="text-[var(--gold)]">⎇</span> GitHub Repository Link
+                    <span className="text-gray-600">(must be public)</span>
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://github.com/username/repo"
+                    value={githubLink}
+                    onChange={(e) => setGithubLink(e.target.value)}
+                    className="w-full bg-[#05080C] border border-white/10 rounded-lg p-3 text-white text-xs font-mono focus:border-[var(--gold)] focus:outline-none transition-colors"
+                  />
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <button
-                    onClick={handleCopyLink}
-                    className="text-[10px] font-mono text-gray-500 hover:text-[var(--gold)] transition-colors"
+                    onClick={handleVideoSubmit}
+                    disabled={updating || (!videoLink.trim() && !githubLink.trim())}
+                    className="px-6 py-3 rounded-lg text-xs font-bold font-mono tracking-widest uppercase bg-[var(--gold)]/20 text-[var(--gold)] border border-[var(--gold)]/50 hover:bg-[var(--gold)]/30 disabled:opacity-50 transition-all"
                   >
-                    {linkCopied ? '✔ Copied to clipboard' : 'Copy submitted link'}
+                    {updating ? 'Saving…' : 'Save Submissions'}
                   </button>
-                )}
+
+                  {userData?.prototypeLink && (
+                    <button
+                      onClick={handleCopyLink}
+                      className="text-[10px] font-mono text-gray-500 hover:text-[var(--gold)] transition-colors"
+                    >
+                      {linkCopied ? '✔ Video link copied' : 'Copy video link'}
+                    </button>
+                  )}
+                </div>
               </>
             )}
           </div>
