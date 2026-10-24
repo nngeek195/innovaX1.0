@@ -67,6 +67,7 @@ export default function AdminDashboard() {
   const [filterPhase, setFilterPhase] = useState<'all' | 'phase2' | 'finalist'>('all');
   const [filterProposal, setFilterProposal] = useState<'all' | 'submitted' | 'pending'>('all');
   const [filterSearch, setFilterSearch] = useState('');
+  const [filterDuplicateNIC, setFilterDuplicateNIC] = useState(false);
 
   // --- Security Confirmation Modal State ---
   const [confirmModal, setConfirmModal] = useState({
@@ -685,6 +686,44 @@ export default function AdminDashboard() {
     return acc + 1 + teammates; // leader + teammates
   }, 0);
 
+  // --- Duplicate NIC Detection ---
+  // Build a map: NIC → array of { registration, role } entries
+  const nicMap = new Map<string, { user: any; role: string }[]>();
+  allUsers.forEach(u => {
+    const leaderNic = (u.leader?.idCard || '').trim().toUpperCase();
+    if (leaderNic) {
+      if (!nicMap.has(leaderNic)) nicMap.set(leaderNic, []);
+      nicMap.get(leaderNic)!.push({
+        user: u,
+        role: u.type === 'team' ? `Leader of "${u.teamName}"` : 'Individual',
+      });
+    }
+    if (u.type === 'team' && u.teammates?.length > 0) {
+      u.teammates.forEach((mate: any, idx: number) => {
+        const mateNic = (mate.idCard || '').trim().toUpperCase();
+        if (mateNic) {
+          if (!nicMap.has(mateNic)) nicMap.set(mateNic, []);
+          nicMap.get(mateNic)!.push({
+            user: u,
+            role: `Member ${idx + 1} of "${u.teamName}"`,
+          });
+        }
+      });
+    }
+  });
+  // Keep only NICs that appear in more than one registration or role
+  const duplicateNICs = new Map<string, { user: any; role: string }[]>();
+  nicMap.forEach((entries, nic) => {
+    if (entries.length > 1) {
+      duplicateNICs.set(nic, entries);
+    }
+  });
+  // Set of registration IDs that have at least one duplicate NIC
+  const duplicateNICUserIds = new Set<string>();
+  duplicateNICs.forEach(entries => {
+    entries.forEach(e => duplicateNICUserIds.add(e.user.id));
+  });
+
   // --- Filtered users for the analytics panel table ---
   const filteredUsers = allUsers.filter(u => {
     if (filterUniversity && u.university !== filterUniversity) return false;
@@ -700,6 +739,7 @@ export default function AdminDashboard() {
       if (filterProposal === 'submitted' && !(u.proposalUploaded && u.proposalLink)) return false;
       if (filterProposal === 'pending' && (u.proposalUploaded && u.proposalLink)) return false;
     }
+    if (filterDuplicateNIC && !duplicateNICUserIds.has(u.id)) return false;
     if (filterSearch) {
       const q = filterSearch.toLowerCase();
       const name = u.type === 'team'
@@ -712,7 +752,7 @@ export default function AdminDashboard() {
     return true;
   });
 
-  const anyFilterActive = filterUniversity || filterType !== 'all' || filterPhase !== 'all' || filterProposal !== 'all' || filterSearch;
+  const anyFilterActive = filterUniversity || filterType !== 'all' || filterPhase !== 'all' || filterProposal !== 'all' || filterSearch || filterDuplicateNIC;
 
   const clearFilters = () => {
     setFilterUniversity('');
@@ -720,6 +760,7 @@ export default function AdminDashboard() {
     setFilterPhase('all');
     setFilterProposal('all');
     setFilterSearch('');
+    setFilterDuplicateNIC(false);
   };
 
   return (
@@ -1664,6 +1705,7 @@ export default function AdminDashboard() {
                   { label: 'Individuals', value: individualCount, color: 'text-pink-400', border: 'border-pink-500/20' },
                   { label: 'Phase 2 Advanced', value: phase2Users.length, color: 'text-[#00E5FF]', border: 'border-[#00E5FF]/30' },
                   { label: 'Finalists', value: finalists.length, color: 'text-[var(--gold)]', border: 'border-[var(--gold)]/30' },
+                  { label: 'Duplicate NICs', value: duplicateNICs.size, color: duplicateNICs.size > 0 ? 'text-orange-400' : 'text-gray-500', border: duplicateNICs.size > 0 ? 'border-orange-500/30' : 'border-white/10' },
                 ].map(({ label, value, color, border }) => (
                   <div key={label} className={`glass-panel ${border} bg-[#05080C]/60 p-4 rounded-lg text-center`}>
                     <p className="text-gray-500 font-mono text-[9px] uppercase tracking-widest mb-1">{label}</p>
@@ -1909,6 +1951,84 @@ export default function AdminDashboard() {
                     </button>
                   ))}
                 </div>
+
+                {/* Duplicate NIC filter row */}
+                <div className="flex flex-wrap gap-3 mb-5 items-center">
+                  <button
+                    onClick={() => setFilterDuplicateNIC(!filterDuplicateNIC)}
+                    className={`py-2 px-5 rounded text-[10px] font-bold tracking-widest uppercase transition-all flex items-center gap-2 ${
+                      filterDuplicateNIC
+                        ? 'bg-orange-500/20 text-orange-400 border border-orange-500/50 shadow-[0_0_12px_rgba(249,115,22,0.15)]'
+                        : 'bg-[#05080C] border border-orange-500/20 text-gray-500 hover:text-orange-400 hover:border-orange-500/40'
+                    }`}
+                  >
+                    <span>🔍</span> Duplicate NICs {duplicateNICs.size > 0 && (
+                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                        filterDuplicateNIC
+                          ? 'bg-orange-500/30 text-orange-300'
+                          : 'bg-orange-500/10 text-orange-400'
+                      }`}>
+                        {duplicateNICs.size}
+                      </span>
+                    )}
+                  </button>
+                  <span className="text-gray-600 font-mono text-[10px]">
+                    {duplicateNICs.size > 0
+                      ? `${duplicateNICs.size} NIC${duplicateNICs.size > 1 ? 's' : ''} found in multiple registrations`
+                      : 'No duplicate NICs detected'
+                    }
+                  </span>
+                </div>
+
+                {/* Duplicate NIC detail panel */}
+                {filterDuplicateNIC && duplicateNICs.size > 0 && (
+                  <div className="mb-6 glass-panel border-orange-500/30 bg-orange-500/5 p-5 rounded-xl animate-fade-in">
+                    <p className="text-orange-400 font-mono text-[10px] uppercase tracking-widest mb-4 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-orange-500 inline-block animate-pulse" />
+                      Duplicate NIC Report — {duplicateNICs.size} conflict{duplicateNICs.size > 1 ? 's' : ''}
+                    </p>
+                    <div className="space-y-4">
+                      {Array.from(duplicateNICs.entries()).map(([nic, entries]) => (
+                        <div key={nic} className="glass-panel border-orange-500/20 bg-[#05080C]/60 p-4 rounded-lg">
+                          <div className="flex items-center gap-3 mb-3">
+                            <span className="bg-orange-500/20 text-orange-400 border border-orange-500/40 px-3 py-1 rounded font-mono text-xs tracking-widest font-bold">
+                              NIC: {nic}
+                            </span>
+                            <span className="text-gray-500 font-mono text-[10px]">
+                              appears in {entries.length} registration{entries.length > 1 ? 's' : ''}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {entries.map((entry, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-center justify-between gap-2 border-l-2 border-orange-500/40 pl-3 py-1.5"
+                              >
+                                <div>
+                                  <p className="text-white text-xs font-bold">
+                                    {entry.user.type === 'team' ? entry.user.teamName : `${entry.user.leader?.firstName} ${entry.user.leader?.lastName}`}
+                                  </p>
+                                  <p className="text-gray-500 font-mono text-[10px]">
+                                    {entry.role}
+                                  </p>
+                                  <p className="text-gray-600 font-mono text-[10px]">
+                                    {entry.user.university}
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={() => setSelectedUser(entry.user)}
+                                  className="text-[9px] font-mono font-bold tracking-widest text-orange-400 border border-orange-500/40 hover:bg-orange-500/10 px-2 py-1 rounded transition-colors shrink-0"
+                                >
+                                  VIEW
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Filtered results table */}
                 <div>
