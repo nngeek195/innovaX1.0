@@ -578,6 +578,8 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   <>
+                    <a href="https://docs.google.com/document/d/1oJDx6h2lnewwG9MokCBe58fwXpRweTDdS6GroltaIBY/edit?usp=sharing" target="_blank"  className="btn-outline-cyan border-[#00E5FF] text-white hover:border-[#00E5FF] hover:text-[#05080C] bg-transparent hover:bg-[#00E5FF] w-full sm:w-auto text-center justify-center mt-[30]">Visit To The Proposal Template</a>
+                    <br />
                     <p className="text-xs md:text-sm text-gray-400 mb-4 leading-relaxed">
                       Upload your architecture proposal (PDF format, max 15 MB). This file is
                       transmitted directly to the judging panel.
