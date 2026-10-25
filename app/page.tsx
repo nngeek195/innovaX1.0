@@ -31,8 +31,8 @@ const NAV_ITEMS = [
 
 const STATS = [
   { label: 'Prize Pool', value: 'LKR 50K+' },
-  { label: 'Proposals Due', value: 'NOV 26' },
-  { label: 'Final Round', value: 'DEC 13' },
+  { label: 'Proposals Due', value: 'NOV 01' },
+  { label: 'Final Round', value: 'DEC 12' },
   { label: 'Open Tracks', value: '03' },
 ];
 
