@@ -78,31 +78,37 @@ const TIMELINE = [
     side: 'right',
   },
   {
-    date: 'October 26',
+    date: 'November 01',
     title: 'Proposal Submission',
     desc: 'Submit your architecture and technical plan. This single document decides who advances to the next stage.',
     side: 'left',
     tag: 'Crucial Phase',
   },
   {
-    date: 'November 04',
-    title: 'Idea Submission Deadline',
-    desc: 'Finalize and submit your refined model concepts for the upcoming prototype phase.',
+    date: 'November 15',
+    title: 'Proposal Winner Announcement',
+    desc: 'Announcement of the selected teams that will advance to the Prototype submission stage.',
     side: 'right',
   },
   {
-    date: 'November 15',
-    title: 'Announce Top 10 Teams',
-    desc: 'The judging panel reveals the official InnovaX Finalists who will compete in the live showdown.',
+    date: 'November 16',
+    title: 'Prototype Submission Opening',
+    desc: 'Teams that advanced from the proposal stage can now submit their working Agentic AI builds for evaluation.',
     side: 'left',
   },
   {
-    date: 'December 13',
-    title: 'Final Round',
-    desc: 'The Top 10 teams pitch and demo their Agentic AI builds live to the judging panel. Winners are announced!',
+    date: 'December 06',
+    title: 'Top 10 Teams Announcement',
+    desc: 'The top 10 teams with the most promising builds will be announced and invited to the final round.',
+    side: 'right',
+  },
+    {
+    date: 'December 12',
+    title: 'Grand Final Round',
+    desc: 'The top 10 teams pitch their builds to the judges. Winners are announced and prizes awarded.',
     side: 'right',
     gold: true,
-  },
+  }
 ];
 
 const PARTNERS = [
