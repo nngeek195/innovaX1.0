@@ -78,11 +78,23 @@ const TIMELINE = [
     side: 'right',
   },
   {
-    date: 'November 01',
-    title: 'Proposal Submission',
-    desc: 'Submit your architecture and technical plan. This single document decides who advances to the next stage.',
+    date: 'October 23',
+    title: 'Proposal Submission Opening',
+    desc: 'Submit your technical proposal and architecture plan to showcase your solution and approach.',
     side: 'left',
     tag: 'Crucial Phase',
+  },
+  {
+    date: 'November 04',
+    title: 'Proposal Submission Closing',
+    desc: 'Proposal submissions are closed. The review process begins, and selected teams will advance to the next stage.',
+    side: 'right',
+  },
+  {
+    date: 'November 05 - November 14',
+    title: 'Proposal Evaluation',
+    desc: 'Proposals are reviewed based on technical approach, feasibility, and innovation to select teams for the next stage.',
+    side: 'left',
   },
   {
     date: 'November 15',
@@ -97,8 +109,20 @@ const TIMELINE = [
     side: 'left',
   },
   {
-    date: 'December 06',
-    title: 'Top 10 Teams Announcement',
+    date: 'November 26',
+    title: 'Prototype Submission Closing',
+    desc: 'Prototype submissions are now closed. Submitted Agentic AI builds will be evaluated to select teams for the next stage.',
+    side: 'right',
+  },
+  {
+    date: 'November 27 - December 06',
+    title: 'Prototype Evaluation',
+    desc: 'Submitted Agentic AI prototypes are evaluated based on functionality, innovation, and technical implementation to select teams for the next stage.',
+    side: 'left',
+  },
+  {
+    date: 'December 07',
+    title: 'Finalists Announcement',
     desc: 'The top 10 teams with the most promising builds will be announced and invited to the final round.',
     side: 'right',
   },
@@ -106,7 +130,7 @@ const TIMELINE = [
     date: 'December 12',
     title: 'Grand Final Round',
     desc: 'The top 10 teams pitch their builds to the judges. Winners are announced and prizes awarded.',
-    side: 'right',
+    side: 'left',
     gold: true,
   }
 ];
