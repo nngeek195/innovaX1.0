@@ -11,6 +11,7 @@ export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -29,6 +30,21 @@ export default function Login() {
 
     try {
       console.log("--- LOGIN INITIATED ---");
+
+      // Check if the email exists in the system first
+      const checkRes = await fetch('/api/auth/check-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const checkData = await checkRes.json();
+
+      if (!checkData.exists) {
+        setError('This email is not registered. Please register first.');
+        setLoading(false);
+        return;
+      }
+
       // 1. Authenticate with Firebase
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -63,8 +79,8 @@ export default function Login() {
 
     } catch (err: any) {
       console.error("LOGIN FAILED!", err);
-      // We will fall back to your preferred generic message, or print the Firebase message if helpful
-      setError("Invalid credentials or account does not exist.");
+      // Since we already verified the email exists, a failure here means wrong password
+      setError("Wrong password. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -173,18 +189,49 @@ export default function Login() {
                   </svg>
                   PASSWORD
                 </label>
-                <input
-                  type="password"
-                  placeholder="••••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onFocus={() => setFocusedField('password')}
-                  onBlur={() => setFocusedField(null)}
-                  className="login-input"
-                  required
-                  autoComplete="current-password"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onFocus={() => setFocusedField('password')}
+                    onBlur={() => setFocusedField(null)}
+                    className="login-input pr-10"
+                    required
+                    autoComplete="current-password"
+                  />
+                  {/* Eye toggle button */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((s) => !s)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#00E5FF] transition-colors duration-200"
+                    tabIndex={-1}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? (
+                      <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
                 <div className={`login-input-glow ${focusedField === 'password' ? 'glow-on glow-secure' : ''}`} />
+              </div>
+
+              {/* Forgot Password Link */}
+              <div className="flex justify-end -mt-2 mb-2">
+                <Link
+                  href="/forgot-password"
+                  className="text-[10px] font-mono tracking-[0.15em] uppercase text-gray-500 hover:text-[#00E5FF] transition-colors duration-200"
+                >
+                  Forgot Password?
+                </Link>
               </div>
 
               {/* Submit Button */}
