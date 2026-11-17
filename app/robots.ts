@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/dashboard", "/api/"],
+        disallow: ["/admin", "/dashboard", "/judge-dashboard", "/api/"],
       },
     ],
     sitemap: "https://innovax.cschaptersusl.org/sitemap.xml",

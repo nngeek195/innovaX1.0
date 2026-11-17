@@ -7,6 +7,7 @@
  */
 import { initializeApp, getApps, cert, type App } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 
 function getAdminApp(): App {
   // Re-use an existing app if already initialised (important for hot-reload in dev)
@@ -32,3 +33,6 @@ function getAdminApp(): App {
 
 /** Server-side Firestore instance that bypasses Security Rules */
 export const adminDb = getFirestore(getAdminApp());
+
+/** Server-side Auth instance (verify ID tokens, create users) */
+export const adminAuth = getAuth(getAdminApp());

@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
-import { Resend } from 'resend';
+import { getResend } from '@/lib/resend';
 import { InnovaXEmail } from '@/emails/InnovaXTemplate';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
   try {
@@ -21,7 +20,7 @@ export async function POST(request: Request) {
     }));
 
     // Send the batch
-    const data = await resend.batch.send(emailBatch);
+    const data = await getResend().batch.send(emailBatch);
 
     return NextResponse.json({ success: true, data });
   } catch (error: any) {

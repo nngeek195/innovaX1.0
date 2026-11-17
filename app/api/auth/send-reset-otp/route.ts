@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { Resend } from 'resend';
+import { getResend } from '@/lib/resend';
 import { PasswordResetOTPTemplate } from '@/emails/PasswordResetOTPTemplate';
 import { getAuth } from 'firebase-admin/auth';
 import { getApps } from 'firebase-admin/app';
@@ -9,7 +9,6 @@ import { getApps } from 'firebase-admin/app';
 // Ensure Firebase Admin is initialized
 import '@/lib/firebase-admin';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
   try {
@@ -71,7 +70,7 @@ export async function POST(request: Request) {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     // Send Email via Resend
-    await resend.emails.send({
+    await getResend().emails.send({
       from: 'InnovaX Security <security@innovax.cschaptersusl.org>',
       to: [email],
       subject: 'InnovaX Password Reset Code: ' + otp,

@@ -9,6 +9,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { extractAmbassadorsFromCSV, type ParsedAmbassador } from '@/lib/csv';
 import { exportToExcel, exportToPDF } from '@/lib/export';
+import { judgeCategoryLabel, judgeDisplayName, judgeInstitution, type JudgeProfile, type JudgeStatus } from '@/lib/judges';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -29,6 +30,16 @@ export default function AdminDashboard() {
   const [numPhase2Judges, setNumPhase2Judges] = useState(1);
   const [judgePhase2Panels, setJudgePhase2Panels] = useState<any[]>([]);
   const [phase2PanelJudgeNames, setPhase2PanelJudgeNames] = useState<Record<number, string>>({});
+
+  // --- Registered Judge Board State ---
+  const [boardJudges, setBoardJudges] = useState<JudgeProfile[]>([]);
+  const [boardLoading, setBoardLoading] = useState(false);
+  const [boardError, setBoardError] = useState('');
+  const [boardFilter, setBoardFilter] = useState<JudgeStatus | 'all'>('pending');
+  const [boardBusyId, setBoardBusyId] = useState<string | null>(null);
+  const [distributing, setDistributing] = useState(false);
+  const [distributeMsg, setDistributeMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [boardZipping, setBoardZipping] = useState<string | null>(null);
   
   const [p1Deadline, setP1Deadline] = useState('');
   const [p2Deadline, setP2Deadline] = useState('');
@@ -124,6 +135,7 @@ export default function AdminDashboard() {
           }
 
           fetchUsers();
+          fetchBoardJudges();
         } else {
           router.push('/dashboard');
         }
@@ -509,12 +521,40 @@ export default function AdminDashboard() {
     }
   };
 
+  /** Fetch each proposal PDF and download them as one ZIP. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- registrations are untyped in this file
+  const zipProposals = async (proposals: any[], zipName: string) => {
+    if (proposals.length === 0) {
+      alert('No proposal PDFs found for this selection.');
+      return;
+    }
+    const JSZip = (await import('jszip')).default;
+    const zip = new JSZip();
+    for (const u of proposals) {
+      try {
+        const response = await fetch(u.proposalLink);
+        const blob = await response.blob();
+        const rawName = u.type === 'team'
+          ? u.teamName
+          : `${u.leader?.firstName}_${u.leader?.lastName}`;
+        const safeName = (rawName || u.id).replace(/[^a-z0-9_-]/gi, '_');
+        zip.file(`${safeName}.pdf`, blob);
+      } catch {
+        console.error('Failed to fetch PDF for', u.id);
+      }
+    }
+    const content = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(content);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${zipName}.zip`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const downloadJudgeZip = async (panelId: number) => {
     setZipDownloading(panelId);
     try {
-      const JSZip = (await import('jszip')).default;
-      const zip = new JSZip();
-
       let proposals: any[];
       let zipName: string;
 
@@ -529,32 +569,7 @@ export default function AdminDashboard() {
         zipName = `Judge_${label}_Proposals`;
       }
 
-      if (proposals.length === 0) {
-        alert('No proposal PDFs found for this selection.');
-        return;
-      }
-
-      for (const u of proposals) {
-        try {
-          const response = await fetch(u.proposalLink);
-          const blob = await response.blob();
-          const rawName = u.type === 'team'
-            ? u.teamName
-            : `${u.leader?.firstName}_${u.leader?.lastName}`;
-          const safeName = (rawName || u.id).replace(/[^a-z0-9_-]/gi, '_');
-          zip.file(`${safeName}.pdf`, blob);
-        } catch {
-          console.error('Failed to fetch PDF for', u.id);
-        }
-      }
-
-      const content = await zip.generateAsync({ type: 'blob' });
-      const url = URL.createObjectURL(content);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${zipName}.zip`;
-      a.click();
-      URL.revokeObjectURL(url);
+      await zipProposals(proposals, zipName);
     } catch (err: any) {
       alert('ZIP download failed: ' + err.message);
     } finally {
@@ -610,6 +625,111 @@ export default function AdminDashboard() {
       setJudgePhase2Panels(updated);
     } catch {
       alert('Failed to save judge name.');
+    }
+  };
+  // ────────────────────────────────────────────────────────────────────────────
+
+  const errMsg = (err: unknown) => (err instanceof Error ? err.message : String(err));
+
+  // ─── Registered Judge Board Functions ─────────────────────────────────────
+  const adminFetch = async (url: string, init: RequestInit = {}) => {
+    const token = await auth.currentUser?.getIdToken();
+    if (!token) throw new Error('Your admin session has expired. Please sign in again.');
+    const res = await fetch(url, {
+      ...init,
+      headers: { ...(init.headers || {}), Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+    return data;
+  };
+
+  const fetchBoardJudges = async () => {
+    setBoardLoading(true);
+    setBoardError('');
+    try {
+      const data = await adminFetch('/api/admin/judges');
+      setBoardJudges(data.judges || []);
+    } catch (err) {
+      setBoardError(errMsg(err));
+    } finally {
+      setBoardLoading(false);
+    }
+  };
+
+  const updateBoardJudgeStatus = (judge: JudgeProfile, status: JudgeStatus) => {
+    const assigned = judge.assignedUserIds?.length || 0;
+    const verb = status === 'approved' ? 'CONFIRM' : status === 'rejected' ? 'REJECT' : 'MOVE BACK TO PENDING';
+    const extra = status === 'approved'
+      ? ' They will be added to the proposal distribution list. Run "Distribute" to give them proposals.'
+      : assigned > 0
+        ? ` They currently hold ${assigned} assigned proposal${assigned !== 1 ? 's' : ''}, which will be released — re-run "Distribute" afterwards so every proposal has a judge.`
+        : '';
+    requestAction(
+      `${verb} JUDGE`,
+      `${verb} ${judgeDisplayName(judge)} (${judgeInstitution(judge)})?${extra}`,
+      async () => {
+        setBoardBusyId(judge.id);
+        try {
+          await adminFetch('/api/admin/judges', {
+            method: 'PATCH',
+            body: JSON.stringify({ judgeId: judge.id, status }),
+          });
+          setBoardJudges(prev => prev.map(j => j.id === judge.id
+            ? { ...j, status, ...(status !== 'approved' ? { assignedUserIds: [], distributedAt: null } : {}) }
+            : j));
+        } catch (err) {
+          alert('Failed to update judge: ' + errMsg(err));
+        } finally {
+          setBoardBusyId(null);
+        }
+      }
+    );
+  };
+
+  const handleDistributeToBoard = () => {
+    const confirmed = boardJudges.filter(j => j.status === 'approved');
+    const submitted = allUsers.filter(u => u.proposalUploaded && u.proposalLink);
+    if (confirmed.length === 0) return alert('No confirmed judges yet. Confirm at least one judge first.');
+    if (submitted.length === 0) return alert('No submitted proposals found yet. Proposals must be uploaded first.');
+    const alreadyDistributed = confirmed.some(j => j.distributedAt);
+    requestAction(
+      'DISTRIBUTE PROPOSALS TO JUDGE BOARD',
+      `Split ${submitted.length} proposal${submitted.length !== 1 ? 's' : ''} across ${confirmed.length} confirmed judge${confirmed.length !== 1 ? 's' : ''} and email each judge that their proposals are on their dashboard?` +
+        (systemConfig?.phase1Open ? ' ⚠ Phase 1 is still LIVE — proposals submitted after this will not be assigned until you distribute again.' : '') +
+        (alreadyDistributed ? ' ⚠ This REPLACES the current assignment and re-sends the emails. Scores already saved are kept.' : ''),
+      async () => {
+        setDistributing(true);
+        setDistributeMsg(null);
+        try {
+          const data = await adminFetch('/api/admin/judges/distribute', { method: 'POST' });
+          const parts = [
+            `✓ ${data.proposals} proposals distributed across ${data.judges} judges.`,
+            `${data.emailsSent} notification email${data.emailsSent !== 1 ? 's' : ''} sent.`,
+          ];
+          if (data.conflicts > 0) parts.push(`⚠ ${data.conflicts} proposal(s) had to go to a lecturer from the same university (no other judge available).`);
+          if (data.emailErrors?.length) parts.push(`⚠ Email errors: ${data.emailErrors.join('; ')}`);
+          setDistributeMsg({ ok: !data.emailErrors?.length, text: parts.join(' ') });
+          await fetchBoardJudges();
+        } catch (err) {
+          setDistributeMsg({ ok: false, text: 'Distribution failed: ' + errMsg(err) });
+        } finally {
+          setDistributing(false);
+        }
+      }
+    );
+  };
+
+  const downloadBoardJudgeZip = async (judge: JudgeProfile) => {
+    setBoardZipping(judge.id);
+    try {
+      const ids = new Set(judge.assignedUserIds || []);
+      const proposals = allUsers.filter(u => ids.has(u.id) && u.proposalLink);
+      await zipProposals(proposals, `JudgeBoard_${judgeDisplayName(judge).replace(/[^a-z0-9_-]/gi, '_')}_Proposals`);
+    } catch (err) {
+      alert('ZIP download failed: ' + errMsg(err));
+    } finally {
+      setBoardZipping(null);
     }
   };
   // ────────────────────────────────────────────────────────────────────────────
@@ -1208,6 +1328,239 @@ export default function AdminDashboard() {
             )}
           </div>
         </div>
+
+        {/* === REGISTERED JUDGE BOARD === */}
+        {(() => {
+          const counts = {
+            pending: boardJudges.filter(j => j.status === 'pending').length,
+            approved: boardJudges.filter(j => j.status === 'approved').length,
+            rejected: boardJudges.filter(j => j.status === 'rejected').length,
+          };
+          const visible = boardFilter === 'all' ? boardJudges : boardJudges.filter(j => j.status === boardFilter);
+          const confirmedJudges = boardJudges.filter(j => j.status === 'approved');
+          const submittedCount = allUsers.filter(u => u.proposalUploaded && u.proposalLink).length;
+          const usersById = new Map(allUsers.map(u => [u.id, u]));
+          const assignedIds = new Set(confirmedJudges.flatMap(j => j.assignedUserIds || []));
+          const unassignedCount = allUsers.filter(u => u.proposalUploaded && u.proposalLink && !assignedIds.has(u.id)).length;
+          const statusBadge: Record<JudgeStatus, string> = {
+            pending: 'text-[var(--gold)] border-[var(--gold)]/40 bg-[var(--gold)]/10',
+            approved: 'text-green-400 border-green-500/40 bg-green-500/10',
+            rejected: 'text-red-400 border-red-500/40 bg-red-500/10',
+          };
+          return (
+            <div className="glass-panel border-[var(--gold)]/30 bg-[#121822]/50 p-6 mb-12">
+              <div className="flex justify-between items-start flex-wrap gap-4 mb-6">
+                <div>
+                  <h2 className="text-[var(--gold)] font-mono text-xs tracking-[0.2em] uppercase">
+                    🎓 Judge Board Registrations
+                    {counts.pending > 0 && (
+                      <span className="ml-3 text-[10px] bg-[var(--gold)] text-black font-bold px-2 py-0.5 rounded-full">{counts.pending} NEW</span>
+                    )}
+                  </h2>
+                  <p className="text-gray-600 font-mono text-[10px] mt-2">
+                    Judges self-register at <span className="text-gray-400">/judge-register</span>. Confirm them to add them to the proposal distribution below.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/judge-register`);
+                      alert('✓ Judge registration link copied to clipboard!');
+                    }}
+                    className="text-[10px] font-mono tracking-widest uppercase text-[var(--gold)] border border-[var(--gold)]/40 hover:bg-[var(--gold)]/10 px-3 py-1.5 rounded transition-colors"
+                  >
+                    📋 Copy Registration Link
+                  </button>
+                  <button
+                    onClick={fetchBoardJudges}
+                    disabled={boardLoading}
+                    className="text-[10px] font-mono tracking-widest uppercase text-gray-400 border border-gray-600 hover:bg-white/5 px-3 py-1.5 rounded transition-colors disabled:opacity-50"
+                  >
+                    {boardLoading ? '⏳' : '↻'} Refresh
+                  </button>
+                </div>
+              </div>
+
+              {boardError && (
+                <div className="mb-4 bg-red-500/10 border border-red-500/40 text-red-300 p-3 rounded text-xs font-mono">{boardError}</div>
+              )}
+
+              {/* Filter tabs */}
+              <div className="flex gap-2 flex-wrap mb-4">
+                {([
+                  ['pending', `Pending (${counts.pending})`],
+                  ['approved', `Confirmed (${counts.approved})`],
+                  ['rejected', `Rejected (${counts.rejected})`],
+                  ['all', `All (${boardJudges.length})`],
+                ] as const).map(([key, label]) => (
+                  <button
+                    key={key}
+                    onClick={() => setBoardFilter(key)}
+                    className={`text-[10px] font-mono tracking-widest uppercase px-3 py-1.5 rounded border transition-colors ${
+                      boardFilter === key ? 'border-[var(--gold)] text-[var(--gold)] bg-[var(--gold)]/10' : 'border-white/10 text-gray-500 hover:text-white'}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="overflow-x-auto rounded border border-white/10 mb-10">
+                <table className="w-full text-left text-sm whitespace-nowrap">
+                  <thead className="bg-[#05080C] text-gray-500 font-mono text-[10px] uppercase tracking-wider">
+                    <tr>
+                      <th className="p-3 font-normal">Judge</th>
+                      <th className="p-3 font-normal">Type</th>
+                      <th className="p-3 font-normal">University / Company</th>
+                      <th className="p-3 font-normal">Designation</th>
+                      <th className="p-3 font-normal">Contact</th>
+                      <th className="p-3 font-normal">Registered</th>
+                      <th className="p-3 font-normal text-center">Status</th>
+                      <th className="p-3 font-normal text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {visible.map(j => (
+                      <tr key={j.id} className="hover:bg-white/5 transition-colors">
+                        <td className="p-3">
+                          <p className="font-bold text-white">{judgeDisplayName(j)}</p>
+                          <p className="text-[11px] font-mono text-gray-500">{j.email}</p>
+                        </td>
+                        <td className="p-3">
+                          <span className={`text-[9px] font-mono uppercase px-2 py-0.5 rounded border ${j.category === 'lecturer' ? 'text-[#00E5FF] border-[#00E5FF]/30' : 'text-purple-300 border-purple-500/30'}`}>
+                            {j.category === 'lecturer' ? '🎓 ' : '💼 '}{judgeCategoryLabel(j.category)}
+                          </span>
+                        </td>
+                        <td className="p-3 text-gray-300 text-xs whitespace-normal max-w-[240px]">{judgeInstitution(j)}</td>
+                        <td className="p-3 text-gray-400 text-xs">{j.designation || '—'}</td>
+                        <td className="p-3 text-gray-400 text-xs font-mono">{j.phone || '—'}</td>
+                        <td className="p-3 text-gray-500 text-xs font-mono">{j.createdAt ? new Date(j.createdAt).toLocaleDateString() : '—'}</td>
+                        <td className="p-3 text-center">
+                          <span className={`text-[9px] font-mono uppercase tracking-widest px-2 py-1 rounded border ${statusBadge[j.status]}`}>
+                            {j.status === 'approved' ? 'confirmed' : j.status}
+                          </span>
+                        </td>
+                        <td className="p-3">
+                          <div className="flex gap-2 justify-center">
+                            {j.status !== 'approved' && (
+                              <button
+                                onClick={() => updateBoardJudgeStatus(j, 'approved')}
+                                disabled={boardBusyId === j.id}
+                                className="text-[10px] font-mono tracking-widest uppercase text-green-400 border border-green-500/40 hover:bg-green-500/10 px-3 py-1.5 rounded transition-colors disabled:opacity-40"
+                              >
+                                ✓ Confirm
+                              </button>
+                            )}
+                            {j.status !== 'rejected' && (
+                              <button
+                                onClick={() => updateBoardJudgeStatus(j, 'rejected')}
+                                disabled={boardBusyId === j.id}
+                                className="text-[10px] font-mono tracking-widest uppercase text-red-400 border border-red-500/40 hover:bg-red-500/10 px-3 py-1.5 rounded transition-colors disabled:opacity-40"
+                              >
+                                ✕ {j.status === 'approved' ? 'Revoke' : 'Reject'}
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {visible.length === 0 && (
+                      <tr>
+                        <td colSpan={8} className="p-8 text-center text-gray-600 font-mono text-xs">
+                          {boardLoading ? 'Loading judge registrations…' : boardFilter === 'pending' ? 'No judges awaiting review.' : 'No judges in this list.'}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* ── Proposal distribution among confirmed judges ── */}
+              <div className="pt-8 border-t border-white/10">
+                <p className="text-[#00E5FF] font-mono text-[10px] uppercase tracking-widest mb-1">
+                  ⚡ Proposal Distribution — Confirmed Judge Board ({confirmedJudges.length})
+                </p>
+                <p className="text-gray-600 font-mono text-[10px] mb-5">
+                  Every confirmed judge is included automatically. Proposals are split evenly, and a lecturer is never given a
+                  proposal from their own university when another judge is available. Each judge is emailed when you distribute.
+                </p>
+
+                <div className="flex gap-4 items-center flex-wrap mb-6">
+                  <button
+                    onClick={handleDistributeToBoard}
+                    disabled={distributing || confirmedJudges.length === 0}
+                    className="py-2.5 px-5 rounded text-xs font-bold tracking-widest uppercase bg-[#00E5FF]/20 text-[#00E5FF] border border-[#00E5FF]/50 hover:bg-[#00E5FF]/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {distributing ? '⏳ Distributing & emailing…' : '⚡ Distribute Proposals & Notify Judges'}
+                  </button>
+                  <p className="text-gray-500 font-mono text-[10px]">
+                    {submittedCount} proposals submitted · {confirmedJudges.length} confirmed judges
+                    {confirmedJudges.length > 0 && submittedCount > 0 && ` · ~${Math.ceil(submittedCount / confirmedJudges.length)} each`}
+                  </p>
+                  {confirmedJudges.some(j => j.distributedAt) && unassignedCount > 0 && (
+                    <p className="text-[var(--gold)] font-mono text-[10px]">
+                      ⚠ {unassignedCount} submitted proposal{unassignedCount !== 1 ? 's are' : ' is'} not assigned to any judge — distribute again.
+                    </p>
+                  )}
+                </div>
+
+                {distributeMsg && (
+                  <div className={`mb-6 p-3 rounded text-xs font-mono border ${distributeMsg.ok ? 'bg-green-500/10 border-green-500/30 text-green-300' : 'bg-[var(--gold)]/10 border-[var(--gold)]/30 text-[var(--gold)]'}`}>
+                    {distributeMsg.text}
+                  </div>
+                )}
+
+                {confirmedJudges.length > 0 ? (
+                  <div className="overflow-x-auto rounded border border-[#00E5FF]/20">
+                    <table className="w-full text-left text-sm font-mono whitespace-nowrap">
+                      <thead className="bg-[#05080C] text-gray-500 text-[10px] uppercase tracking-wider">
+                        <tr>
+                          <th className="p-3 font-normal">Judge</th>
+                          <th className="p-3 font-normal">Institution</th>
+                          <th className="p-3 font-normal text-center">Assigned</th>
+                          <th className="p-3 font-normal text-center">Scored</th>
+                          <th className="p-3 font-normal">Distributed</th>
+                          <th className="p-3 font-normal text-center">Download PDFs</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {confirmedJudges.map(j => {
+                          const ids = j.assignedUserIds || [];
+                          const scored = ids.filter(id => usersById.get(id)?.judgeScore?.total !== undefined).length;
+                          return (
+                            <tr key={j.id} className="hover:bg-white/5 transition-colors">
+                              <td className="p-3 text-white text-xs font-bold">{judgeDisplayName(j)}</td>
+                              <td className="p-3 text-gray-400 text-xs">{judgeInstitution(j)}</td>
+                              <td className="p-3 text-center text-white font-bold">{ids.length}</td>
+                              <td className="p-3 text-center">
+                                <span className={scored === ids.length && ids.length > 0 ? 'text-green-400' : 'text-gray-400'}>{scored}/{ids.length}</span>
+                              </td>
+                              <td className="p-3 text-gray-500 text-xs">
+                                {j.distributedAt ? new Date(j.distributedAt).toLocaleString() : <span className="text-[var(--gold)]">Awaiting distribution</span>}
+                              </td>
+                              <td className="p-3 text-center">
+                                <button
+                                  onClick={() => downloadBoardJudgeZip(j)}
+                                  disabled={boardZipping !== null || ids.length === 0}
+                                  className="text-[10px] font-mono tracking-widest uppercase text-green-400 border border-green-500/40 hover:bg-green-500/10 px-3 py-1.5 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                >
+                                  {boardZipping === j.id ? '⏳ Zipping…' : '📦 ZIP'}
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-gray-600 font-mono text-xs text-center py-6 border border-white/5 rounded">
+                    No confirmed judges yet. Confirm registrations above to add them here.
+                  </p>
+                )}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* === AMBASSADOR REGISTRATION PANEL === */}
         <div className="glass-panel border-[#7C3AED]/30 bg-[#121822]/50 p-6 mb-12">
