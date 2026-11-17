@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
-import { Resend } from 'resend';
+import { getResend } from '@/lib/resend';
 import { AmbassadorEmail } from '@/emails/AmbassadorTemplate';
 import { SITE_URL } from '@/lib/config';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
   try {
@@ -50,7 +49,7 @@ export async function POST(request: Request) {
 
     for (let i = 0; i < emailBatch.length; i += batchSize) {
       const slice = emailBatch.slice(i, i + batchSize);
-      const res = await resend.batch.send(slice);
+      const res = await getResend().batch.send(slice);
       results.push(res);
     }
 

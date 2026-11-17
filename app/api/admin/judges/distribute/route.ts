@@ -9,14 +9,13 @@
  * registrations are kept).
  */
 import { NextResponse } from 'next/server';
-import { Resend } from 'resend';
+import { getResend } from '@/lib/resend';
 import { adminDb } from '@/lib/firebase-admin';
 import { errorResponse, HttpError, requireAdmin } from '@/lib/server-auth';
 import { distributeProposals, judgeDisplayName, type JudgeProfile } from '@/lib/judges';
 import { JudgeAssignmentEmail } from '@/emails/JudgeAssignmentTemplate';
 import { EMAIL_FROM_EVENTS, SITE_URL } from '@/lib/config';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const RESEND_BATCH_LIMIT = 100;
 
 export async function POST(request: Request) {
@@ -76,7 +75,7 @@ export async function POST(request: Request) {
     for (let i = 0; i < emails.length; i += RESEND_BATCH_LIMIT) {
       const slice = emails.slice(i, i + RESEND_BATCH_LIMIT);
       try {
-        const { error } = await resend.batch.send(slice);
+        const { error } = await getResend().batch.send(slice);
         if (error) emailErrors.push(error.message);
         else emailsSent += slice.length;
       } catch (e) {

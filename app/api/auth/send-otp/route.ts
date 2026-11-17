@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { Resend } from 'resend';
+import { getResend } from '@/lib/resend';
 import { OTPTemplate } from '@/emails/OTPTemplate';
 import { EMAIL_FROM_SECURITY } from '@/lib/config';
 import { withTimeout, TimeoutError } from '@/lib/timeout';
@@ -9,7 +9,6 @@ import { withTimeout, TimeoutError } from '@/lib/timeout';
 const DB_TIMEOUT_MS = 15_000;
 const EMAIL_TIMEOUT_MS = 20_000;
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
   try {
@@ -58,11 +57,11 @@ export async function POST(request: Request) {
       subject: (isJudge ? 'InnovaX Judge Board Verification Code: ' : 'InnovaX Registration Code: ') + otp,
       react: OTPTemplate({ otp, name, audience: isJudge ? 'judge' : 'participant' }),
     };
-    let sendResult = await withTimeout(resend.emails.send(message), EMAIL_TIMEOUT_MS, 'Email service');
+    let sendResult = await withTimeout(getResend().emails.send(message), EMAIL_TIMEOUT_MS, 'Email service');
     if (sendResult.error && sendResult.error.statusCode == null) {
       // statusCode null ⇒ network-level failure (request never reached Resend)
       await new Promise(r => setTimeout(r, 1000));
-      sendResult = await withTimeout(resend.emails.send(message), EMAIL_TIMEOUT_MS, 'Email service');
+      sendResult = await withTimeout(getResend().emails.send(message), EMAIL_TIMEOUT_MS, 'Email service');
     }
     if (sendResult.error) {
       console.error('[send-otp] Resend error:', sendResult.error);
