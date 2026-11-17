@@ -7,7 +7,7 @@ export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   // Define our protected and auth routes
-  const isProtected = path.startsWith('/dashboard') || path.startsWith('/admin');
+  const isProtected = path.startsWith('/dashboard') || path.startsWith('/admin') || path.startsWith('/judge-dashboard');
   const isAuthPage = path === '/login' || path === '/register';
 
   // 1. If trying to access secure pages without a session -> Kick to Login
@@ -25,5 +25,5 @@ export function middleware(request: NextRequest) {
 
 // Ensure middleware only runs on specific routes to save performance
 export const config = {
-  matcher: ['/dashboard/:path*', '/admin/:path*', '/login', '/register'],
+  matcher: ['/dashboard/:path*', '/admin/:path*', '/judge-dashboard/:path*', '/login', '/register'],
 };

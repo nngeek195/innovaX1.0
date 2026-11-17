@@ -111,9 +111,23 @@ export default function Dashboard() {
             setVideoLink(data.prototypeLink || '');
             setGithubLink(data.githubLink || '');
           } else {
-            document.cookie = 'innovax_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-            signOut(auth);
-            router.push('/login');
+            // Judge Board members have their own dashboard.
+            user.getIdToken()
+              .then(token => fetch('/api/judge/me', { headers: { Authorization: `Bearer ${token}` } }))
+              .then(res => {
+                if (res.ok) {
+                  router.replace('/judge-dashboard');
+                  return;
+                }
+                document.cookie = 'innovax_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                signOut(auth);
+                router.push('/login');
+              })
+              .catch(() => {
+                document.cookie = 'innovax_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                signOut(auth);
+                router.push('/login');
+              });
           }
         });
 

@@ -4,13 +4,16 @@ import * as React from 'react';
 interface OTPTemplateProps {
   otp: string;
   name: string;
+  /** 'judge' tailors the copy for Judge Board registration */
+  audience?: 'participant' | 'judge';
 }
 
-export const OTPTemplate = ({ otp, name }: OTPTemplateProps) => {
+export const OTPTemplate = ({ otp, name, audience = 'participant' }: OTPTemplateProps) => {
+  const isJudge = audience === 'judge';
   return (
     <Html>
       <Head />
-      <Preview>Your InnovaX Registration Access Code: {otp}</Preview>
+      <Preview>{isJudge ? 'Your InnovaX Judge Board Verification Code' : 'Your InnovaX Registration Access Code'}: {otp}</Preview>
       <Body style={main}>
         <Container style={container}>
           <Section style={header}>
@@ -18,9 +21,11 @@ export const OTPTemplate = ({ otp, name }: OTPTemplateProps) => {
           </Section>
           <Section style={content}>
             <Heading style={heading}>SYSTEM VERIFICATION</Heading>
-            <Text style={text}>Explorer <strong>{name}</strong>,</Text>
+            <Text style={text}>{isJudge ? 'Dear' : 'Explorer'} <strong>{name}</strong>,</Text>
             <Text style={text}>
-              A request has been made to register this email address for the InnovaX Hackathon. To verify your identity and secure your portal access, use the clearance code below:
+              {isJudge
+                ? 'Thank you for registering to serve on the InnovaX Judge Board. To verify your email address and activate your judge portal access, please use the verification code below:'
+                : 'A request has been made to register this email address for the InnovaX Hackathon. To verify your identity and secure your portal access, use the clearance code below:'}
             </Text>
             
             <div style={otpContainer}>

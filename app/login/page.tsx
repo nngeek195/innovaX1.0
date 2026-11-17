@@ -72,7 +72,17 @@ export default function Login() {
         return; // Stop execution here so they route cleanly to dashboard
       }
 
-      // 4. Rejection: They authenticated, but have no database records.
+      // 4. Is this user a Judge Board member? (checked server-side; the
+      //    judges collection is only reachable through the Admin SDK)
+      const judgeRes = await fetch('/api/judge/me', {
+        headers: { Authorization: `Bearer ${await user.getIdToken()}` },
+      });
+      if (judgeRes.ok) {
+        router.push('/judge-dashboard');
+        return;
+      }
+
+      // 5. Rejection: They authenticated, but have no database records.
       console.warn("Access Denied: No database records found for this UID.");
       await signOut(auth);
       setError("Unauthorized. No InnovaX registration found for this account.");
@@ -273,6 +283,15 @@ export default function Login() {
                   className="text-[#00E5FF] hover:text-white transition-colors duration-300 font-bold ml-2"
                 >
                   REGISTER HERE
+                </Link>
+              </p>
+              <p className="text-[10px] text-[var(--mist)]/70 tracking-[0.2em] uppercase text-center mt-3">
+                JOINING AS A JUDGE?{' '}
+                <Link
+                  href="/judge-register"
+                  className="text-[var(--gold)] hover:text-white transition-colors duration-300 font-bold ml-2"
+                >
+                  JUDGE BOARD REGISTRATION
                 </Link>
               </p>
             </div>
